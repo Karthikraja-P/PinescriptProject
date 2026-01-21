@@ -1,142 +1,173 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import styles from './login.module.css';
+import styles from './landing.module.css';
 
-// Simple Eye Icons
-const EyeOpen = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-);
-const EyeClosed = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" /><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" /><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" /><line x1="2" x2="22" y1="2" y2="22" /></svg>
-);
-
-export default function LoginPage() {
+export default function LandingPage() {
     const router = useRouter();
 
-    // States
-    const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-    const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
-
-    // Form Fields
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [name, setName] = useState(''); // Only for signup
-
-    const handleAuth = (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-
-        // Mock Authentication Logic with Dummy Credentials
-        setTimeout(() => {
-            const lowerEmail = email.toLowerCase();
-
-            if (lowerEmail === 'admin@pinescript.com' && password === 'admin123') {
-                router.push('/admin');
-            } else if (lowerEmail === 'client@pinescript.com' && password === 'client123') {
-                router.push('/dashboard');
-            } else {
-                alert('Invalid Credentials! Please use the test accounts listed below.');
-                setLoading(false);
-            }
-        }, 1000);
+    const scrollToSection = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     return (
-        <div className={styles.loginContainer}>
-            <div className={styles.card}>
-                <div className={styles.header}>
-                    <div className={styles.logo}>
-                        PineScript<span style={{ color: 'var(--primary)' }}>Elite</span>
+        <div className={styles.container}>
+            {/* Navbar */}
+            <nav className={styles.navbar}>
+                <div className={styles.logo}>PineScript<span style={{ color: '#2563eb' }}>Elite</span></div>
+                <div className={styles.navLinks}>
+                    <span onClick={() => scrollToSection('home')} className={styles.navLink}>Home</span>
+                    <span onClick={() => scrollToSection('services')} className={styles.navLink}>Services</span>
+                    <span onClick={() => scrollToSection('policies')} className={styles.navLink}>Policies</span>
+                    <span onClick={() => scrollToSection('contact')} className={styles.navLink}>Contact</span>
+                </div>
+                <div className={styles.authButtons}>
+                    <Link href="/auth?mode=login" className={`${styles.btn} ${styles.btnOutline}`}>Log In</Link>
+                    <Link href="/auth?mode=signup" className={`${styles.btn} ${styles.btnPrimary}`}>Sign Up</Link>
+                </div>
+            </nav>
+
+            {/* Hero Section */}
+            <header id="home" className={styles.hero}>
+                <span className={styles.label}>Professional Coding Services</span>
+                <h1 className={styles.title}>
+                    Turn Your Trading Strategy<br />
+                    Into Automated Reality
+                </h1>
+                <p className={styles.description}>
+                    Expert PineScript developers ready to build your custom indicators, strategies,
+                    and alerts for TradingView. Fast delivery, professional code.
+                </p>
+                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                    <Link href="/auth?mode=signup" className={`${styles.btn} ${styles.btnPrimary}`} style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
+                        Start Your Project
+                    </Link>
+                    <span onClick={() => scrollToSection('services')} className={`${styles.btn} ${styles.btnOutline}`} style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
+                        View Services
+                    </span>
+                </div>
+            </header>
+
+            {/* Services Section */}
+            <section id="services" className={styles.services}>
+                <h2 className={styles.sectionTitle}>Our Services</h2>
+                <div className={styles.grid}>
+                    <div className={styles.card}>
+                        <div className={styles.cardIcon}>📊</div>
+                        <div className={styles.cardTitle}>Custom Strategies</div>
+                        <p className={styles.cardText}>
+                            Automate your trading rules. We build robust backtesting strategies with
+                            risk management, entry/exit conditions, and detailed performance reports.
+                        </p>
                     </div>
-                    <p style={{ color: '#64748b' }}>
-                        {authMode === 'login' ? 'Welcome back, trader.' : 'Create your account.'}
+                    <div className={styles.card}>
+                        <div className={styles.cardIcon}>📈</div>
+                        <div className={styles.cardTitle}>Indicators & Tools</div>
+                        <p className={styles.cardText}>
+                            Visualize the market your way. Custom oscillators, moving averages,
+                            and multi-timeframe dashboards tailored to your specific needs.
+                        </p>
+                    </div>
+                    <div className={styles.card}>
+                        <div className={styles.cardIcon}>🔔</div>
+                        <div className={styles.cardTitle}>Alert Systems</div>
+                        <p className={styles.cardText}>
+                            Never miss a setup. Complex alert conditions sent directly to your
+                            phone, email, or webhook for automated execution.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Policies Section */}
+            <section id="policies" className={styles.section}>
+                <h2 className={styles.sectionTitle}>Our Policies</h2>
+                <div className={styles.grid} style={{ gridTemplateColumns: '1fr 1fr' }}>
+                    <div className={styles.textBlock}>
+                        <h3 className={styles.h3}>🔒 Code Privacy</h3>
+                        <p className={styles.cardText}>
+                            Your strategy logic is your intellectual property. We sign NDAs upon request
+                            and guarantee that your code is never shared or reused for other clients.
+                        </p>
+                    </div>
+                    <div className={styles.textBlock}>
+                        <h3 className={styles.h3}>✅ Revision Guarantee</h3>
+                        <p className={styles.cardText}>
+                            We provide 14 days of free support after delivery. If the code deviates
+                            from your initial requirements, we fix it for free.
+                        </p>
+                    </div>
+                    <div className={styles.textBlock}>
+                        <h3 className={styles.h3}>💰 Refund Policy</h3>
+                        <p className={styles.cardText}>
+                            If we cannot deliver the project as scoped, you receive a full refund.
+                            Payments are held in escrow until key milestones are met.
+                        </p>
+                    </div>
+                    <div className={styles.textBlock}>
+                        <h3 className={styles.h3}>⏱️ Delivery Timeline</h3>
+                        <p className={styles.cardText}>
+                            Standard projects are delivered within 3-5 business days. Expedited
+                            24-hour delivery is available for urgent requests.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Contact Section */}
+            <section id="contact" className={styles.services} style={{ background: '#eff6ff' }}>
+                <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+                    <h2 className={styles.sectionTitle}>Get In Touch</h2>
+                    <p className={styles.description} style={{ marginBottom: '32px' }}>
+                        Have a question before starting? Send us a message and our lead developer
+                        will get back to you within 24 hours.
                     </p>
-                </div>
-
-                <form onSubmit={handleAuth}>
-                    {authMode === 'signup' && (
-                        <div className={styles.formGroup}>
-                            <label className={styles.label}>Full Name</label>
-                            <input
-                                type="text"
-                                className={styles.input}
-                                placeholder="John Doe"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
+                    <form className={styles.card} style={{ textAlign: 'left' }} onSubmit={(e) => { e.preventDefault(); alert('Message sent!'); }}>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Email Address</label>
+                            <input type="email" placeholder="you@example.com" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }} required />
                         </div>
-                    )}
+                        <div style={{ marginBottom: '24px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Message</label>
+                            <textarea rows={4} placeholder="How can we help?" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }} required />
+                        </div>
+                        <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ width: '100%' }}>Send Message</button>
+                    </form>
+                </div>
+            </section>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Email Address</label>
-                        <input
-                            type="email"
-                            className={styles.input}
-                            placeholder="trader@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
+            {/* Footer */}
+            <footer className={styles.footer}>
+                <div className={styles.footerContent}>
+                    <div>
+                        <div className={styles.footerLogo}>PineScript<span style={{ color: '#3b82f6' }}>Elite</span></div>
+                        <p style={{ color: '#94a3b8', maxWidth: '300px' }}>
+                            Professional coding services for serious traders.
+                            Based in New York, serving clients worldwide.
+                        </p>
                     </div>
-
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Password</label>
-                        <div className={styles.inputWrapper}>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                className={styles.input}
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <button
-                                type="button"
-                                className={styles.eyeIcon}
-                                onClick={() => setShowPassword(!showPassword)}
-                                tabIndex={-1}
-                            >
-                                {showPassword ? <EyeOpen /> : <EyeClosed />}
-                            </button>
+                    <div className={styles.footerLinks}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <span style={{ fontWeight: '600', color: 'white' }}>Platform</span>
+                            <span onClick={() => scrollToSection('home')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Home</span>
+                            <span onClick={() => scrollToSection('services')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Services</span>
+                            <Link href="/auth?mode=login" className={styles.footerLink}>Login</Link>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <span style={{ fontWeight: '600', color: 'white' }}>Legal</span>
+                            <span onClick={() => scrollToSection('policies')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Terms of Service</span>
+                            <span onClick={() => scrollToSection('policies')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Privacy Policy</span>
                         </div>
                     </div>
-
-                    <button type="submit" className={styles.btnLogin} disabled={loading}>
-                        {loading ? 'Processing...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
-                    </button>
-                </form>
-
-                <div className={styles.footer}>
-                    {authMode === 'login' ? (
-                        <>
-                            Don't have an account?{' '}
-                            <span className={styles.link} onClick={() => setAuthMode('signup')}>Sign up</span>
-                        </>
-                    ) : (
-                        <>
-                            Already have an account?{' '}
-                            <span className={styles.link} onClick={() => setAuthMode('login')}>Log in</span>
-                        </>
-                    )}
                 </div>
-
-                {/* Credentials Hint */}
-                <div style={{ marginTop: '24px', padding: '16px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#64748b' }}>
-                    <p style={{ fontWeight: 600, marginBottom: '8px', color: '#475569' }}>Test Credentials:</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span>Client:</span>
-                        <code style={{ fontFamily: 'monospace' }}>client@pinescript.com / client123</code>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Developer:</span>
-                        <code style={{ fontFamily: 'monospace' }}>admin@pinescript.com / admin123</code>
-                    </div>
+                <div style={{ borderTop: '1px solid #1e293b', marginTop: '40px', paddingTop: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
+                    &copy; 2026 PineScript Elite. All rights reserved.
                 </div>
-            </div>
+            </footer>
         </div>
     );
 }
