@@ -1,0 +1,366 @@
+/* Reuse Layout & Sidebar Styles */
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background: #f1f5f9;
+}
+
+.sidebar {
+    width: 260px;
+    background: white;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    position: fixed;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.sidebarHeader {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.navItem {
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.navItem:hover {
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.navActive {
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.navBadge {
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.main {
+    flex: 1;
+    margin-left: 260px;
+    padding: 40px;
+}
+
+.header {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* Stats */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background: white;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.statTitle {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Tables */
+.card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.cardHeader {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 12px 24px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.table td {
+    padding: 12px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.noData {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+    font-style: italic;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.statusNew {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.statusQuote {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.statusProgress {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.statusPayment {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.statusActive {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.statusCompleted {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+/* Actions */
+.btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+}
+
+.btnPrimary {
+    background: var(--primary);
+    color: white;
+}
+
+.btnOutline {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+/* Chat & Forms */
+.chatContainer {
+    height: 600px;
+    display: flex;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    overflow: hidden;
+}
+
+.chatLayout {
+    display: flex;
+    height: calc(100vh - 140px);
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.chatSidebar {
+    width: 300px;
+    border-right: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatSidebarHeader {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #475569;
+}
+
+.chatSidebarList {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chatSidebarItem {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-left: 4px solid transparent;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.chatSidebarItemActive {
+    background: #e0f2fe;
+    border-left-color: #0ea5e9;
+}
+
+.chatContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatContentHeader {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chatContentBody {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.chatList {
+    width: 260px;
+    border-right: 1px solid #f1f5f9;
+    overflow-y: auto;
+}
+
+.chatItem {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+}
+
+.chatMain {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.messages {
+    flex: 1;
+    padding: 20px;
+    background: #f8fafc;
+    overflow-y: auto;
+}
+
+.msgInputArea {
+    padding: 16px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+}
+
+.input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.formSection {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    max-width: 600px;
+}
+
+.formGroup {
+    margin-bottom: 16px;
+}
+
+.label {
+    display: block;
+    margin-bottom: 6px;
+    color: #64748b;
+    font-size: 0.9rem;
+}
