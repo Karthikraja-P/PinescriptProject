@@ -238,7 +238,7 @@ export default function AdminDashboard() {
                         <thead><tr><th>ID</th><th>Client</th><th>Type</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody>
                             {activeProjects.length === 0 ? (
-                                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>No active projects yet.</td></tr>
+                                <tr><td colSpan={6} className={styles.noData}>No active projects yet.</td></tr>
                             ) : (
                                 activeProjects.map(p => (
                                     <tr key={p.id}>
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
     const PlaceholderView = ({ title }: { title: string }) => (
         <>
             <div className={styles.header}><h1 className={styles.title}>{title}</h1></div>
-            <div className={styles.card} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+            <div className={`${styles.card} ${styles.noData}`}>
                 No data available yet.
             </div>
         </>
