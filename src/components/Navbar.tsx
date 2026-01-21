@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
     const router = useRouter();
+    const pathname = usePathname();
 
     const handleLogout = () => {
         // In a real app, clear tokens/cookies here
@@ -19,7 +20,9 @@ export default function Navbar() {
                     PineScript<span className="text-gradient">Elite</span>
                 </Link>
                 <div className={styles.links}>
-                    <Link href="/start" className={styles.link}>Start Project</Link>
+                    {pathname !== '/start' && (
+                        <Link href="/start" className={styles.link}>Start Project</Link>
+                    )}
                     <Link href="/dashboard" className={styles.link}>Dashboard</Link>
                     <button
                         className="btn-primary"
@@ -33,3 +36,4 @@ export default function Navbar() {
         </nav>
     )
 }
+

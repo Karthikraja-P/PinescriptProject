@@ -12,6 +12,11 @@ const EyeClosed = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" /><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" /><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" /><line x1="2" x2="22" y1="2" y2="22" /></svg>
 );
 
+import { signIn } from 'next-auth/react';
+import { registerUser } from '../actions';
+
+// ... other imports ...
+
 export default function LoginPage() {
     const router = useRouter();
 
@@ -25,23 +30,58 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [name, setName] = useState(''); // Only for signup
 
-    const handleAuth = (e: React.FormEvent) => {
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        // Mock Authentication Logic with Dummy Credentials
-        setTimeout(() => {
-            const lowerEmail = email.toLowerCase();
+        if (authMode === 'login') {
+            const res = await signIn('credentials', {
+                email,
+                password,
+                redirect: false
+            });
 
-            if (lowerEmail === 'admin@pinescript.com' && password === 'admin123') {
-                router.push('/admin');
-            } else if (lowerEmail === 'client@pinescript.com' && password === 'client123') {
-                router.push('/dashboard');
-            } else {
-                alert('Invalid Credentials! Please use the test accounts listed below.');
+            if (res?.error) {
+                alert('Invalid Credentials! Please try again.');
                 setLoading(false);
+            } else {
+                // Determine redirect based on role (simple client logic for now, or fetch session)
+                // For now default to dashboard, but we can check if email is admin.
+                if (email === 'admin@pinescript.com') {
+                    router.push('/admin');
+                } else {
+                    router.push('/dashboard');
+                }
+                router.refresh(); // Update auth state
             }
-        }, 1000);
+        } else {
+            // Signup
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('password', password);
+
+            const result = await registerUser(null, formData); // Handle prevState null
+
+            if (result?.error) {
+                alert(result.error);
+                setLoading(false);
+            } else {
+                // Auto login after signup
+                const res = await signIn('credentials', {
+                    email,
+                    password,
+                    redirect: false
+                });
+                if (!res?.error) {
+                    router.push('/dashboard');
+                    router.refresh();
+                } else {
+                    setAuthMode('login'); // Fallback
+                    setLoading(false);
+                }
+            }
+        }
     };
 
     return (

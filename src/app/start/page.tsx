@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import styles from './page.module.css';
 import Link from 'next/link';
+import { submitProjectRequest } from '../actions';
+// ... prev imports
 
 export default function StartProject() {
     const [step, setStep] = useState(1);
@@ -20,29 +22,22 @@ export default function StartProject() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const nextStep = () => {
-        if (step === 3) {
-            // Simulate Form Submission
-            const newRequest = {
-                id: `REQ-${Math.floor(Math.random() * 1000)}`,
-                ...formData,
-                status: 'New',
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                client: formData.name || 'Client',
-                price: '-', // TBD by Admin
-                deadline: '-' // TBD by Admin
-            };
+    const nextStep = async () => {
+        if (step === 2) {
+            const fd = new FormData();
+            fd.append('type', formData.type);
+            fd.append('budget', formData.budget);
+            fd.append('description', formData.description);
 
-            // Save to LocalStorage for persistence across pages (Frontend Simulation)
-            const existing = JSON.parse(localStorage.getItem('mock_requests') || '[]');
-            localStorage.setItem('mock_requests', JSON.stringify([newRequest, ...existing]));
-
-            // Trigger Admin Notification
-            const notifications = JSON.parse(localStorage.getItem('admin_notifications') || '0');
-            localStorage.setItem('admin_notifications', JSON.stringify(notifications + 1));
+            const res = await submitProjectRequest(null, fd);
+            if (res?.error) {
+                alert(res.error);
+                return;
+            }
         }
-        setStep(s => Math.min(s + 1, 4));
+        setStep(s => Math.min(s + 1, 3));
     };
+
     const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
     return (
@@ -57,58 +52,23 @@ export default function StartProject() {
                     </div>
 
                     {/* Stepper */}
+                    {/* Stepper */}
                     <div className={styles.stepper}>
-                        {[1, 2, 3].map((i) => (
-                            <div
-                                key={i}
-                                className={`${styles.step} ${step >= i ? styles.stepActive : ''} ${step > i ? styles.stepCompleted : ''}`}
-                            >
-                                {step > i ? '✓' : i}
-                            </div>
-                        ))}
+                        {['⚙️', '📝'].map((icon, index) => {
+                            const stepNum = index + 1;
+                            return (
+                                <div
+                                    key={stepNum}
+                                    className={`${styles.step} ${step >= stepNum ? styles.stepActive : ''} ${step > stepNum ? styles.stepCompleted : ''}`}
+                                >
+                                    {step > stepNum ? '✓' : icon}
+                                </div>
+                            );
+                        })}
                     </div>
 
-                    {/* Step 1: Contact */}
+                    {/* Step 1: Details (Formerly Step 2) */}
                     {step === 1 && (
-                        <div className="animate-fade-in">
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Your Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    className={styles.input}
-                                    placeholder="John Trader"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Email Address</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className={styles.input}
-                                    placeholder="john@example.com"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Telegram / Discord (Optional)</label>
-                                <input
-                                    type="text"
-                                    name="telegram"
-                                    className={styles.input}
-                                    placeholder="@username"
-                                    value={formData.telegram}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 2: Details */}
-                    {step === 2 && (
                         <div className="animate-fade-in">
                             <div className={styles.formGroup}>
                                 <label className={styles.label}>Project Type</label>
@@ -141,8 +101,8 @@ export default function StartProject() {
                         </div>
                     )}
 
-                    {/* Step 3: Description */}
-                    {step === 3 && (
+                    {/* Step 2: Description (Formerly Step 3) */}
+                    {step === 2 && (
                         <div className="animate-fade-in">
                             <div className={styles.formGroup}>
                                 <label className={styles.label}>Project Description</label>
@@ -167,8 +127,8 @@ export default function StartProject() {
                         </div>
                     )}
 
-                    {/* Step 4: Success */}
-                    {step === 4 && (
+                    {/* Step 3: Success (Formerly Step 4) */}
+                    {step === 3 && (
                         <div style={{ textAlign: 'center', padding: '20px 0' }} className="animate-fade-in">
                             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🎉</div>
                             <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Enquiry Received!</h2>
@@ -182,20 +142,21 @@ export default function StartProject() {
                     )}
 
                     {/* Navigation */}
-                    {step < 4 && (
+                    {step < 3 && (
                         <div className={styles.actions}>
                             {step > 1 ? (
                                 <button onClick={prevStep} className={styles.btnBack}>Back</button>
                             ) : <div></div>}
 
                             <button onClick={nextStep} className="btn-primary">
-                                {step === 3 ? 'Submit Request' : 'Next Step'}
+                                {step === 2 ? 'Submit Request' : 'Next Step'}
                             </button>
                         </div>
                     )}
 
                 </div>
-            </div>
-        </main>
+            </div >
+        </main >
     );
 }
+

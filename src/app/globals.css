@@ -1,15 +1,55 @@
 :root {
   --background: #ffffff;
-  --foreground: #1a1a1a;
-  --primary: #5955b3;
-  /* Professional Purple/Blue or Green */
-  --primary-glow: rgba(89, 85, 179, 0.3);
-  --secondary: #2563eb;
+  --background-alt: #f8fafc;
+  /* For section backgrounds */
+  --foreground: #1e293b;
+
+  --primary: #2563eb;
+  --primary-glow: rgba(37, 99, 235, 0.2);
+  --secondary: #475569;
+
   --surface: #ffffff;
-  --surface-border: #e4e4e7;
-  --input-bg: #f4f4f5;
+  --surface-border: #e2e8f0;
+
+  --text-heading: #0f172a;
+  --text-body: #334155;
+  --text-secondary: #64748b;
+
+  --success-bg: #dcfce7;
+  --success-text: #15803d;
+
+  --primary-light: #eff6ff;
+
   --font-mono: 'Fira Code', monospace;
   --font-sans: 'Inter', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020617;
+    /* Slate 950 */
+    --background-alt: #0f172a;
+    /* Slate 900 */
+    --foreground: #f8fafc;
+
+    --primary: #3b82f6;
+    /* Blue 500 */
+    --primary-glow: rgba(59, 130, 246, 0.3);
+    --secondary: #94a3b8;
+
+    --surface: #1e293b;
+    /* Slate 800 */
+    --surface-border: #334155;
+
+    --text-heading: #f1f5f9;
+    --text-body: #cbd5e1;
+    --text-secondary: #94a3b8;
+
+    --success-bg: #052e16;
+    --success-text: #4ade80;
+
+    --primary-light: rgba(59, 130, 246, 0.15);
+  }
 }
 
 * {

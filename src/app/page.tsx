@@ -26,8 +26,7 @@ export default function LandingPage() {
                     <span onClick={() => scrollToSection('contact')} className={styles.navLink}>Contact</span>
                 </div>
                 <div className={styles.authButtons}>
-                    <Link href="/auth?mode=login" className={`${styles.btn} ${styles.btnOutline}`}>Log In</Link>
-                    <Link href="/auth?mode=signup" className={`${styles.btn} ${styles.btnPrimary}`}>Sign Up</Link>
+                    <Link href="/auth?mode=login" className={`${styles.btn} ${styles.btnPrimary}`}>Log In</Link>
                 </div>
             </nav>
 

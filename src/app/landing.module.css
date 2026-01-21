@@ -1,7 +1,7 @@
 .container {
     font-family: 'Inter', sans-serif;
-    color: #1e293b;
-    background: #ffffff;
+    color: var(--foreground);
+    background: var(--background);
 }
 
 /* Navbar */
@@ -10,18 +10,18 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px 40px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--surface);
     backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--surface-border);
 }
 
 .logo {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-heading);
     text-decoration: none;
 }
 
@@ -32,14 +32,17 @@
 
 .navLink {
     text-decoration: none;
-    color: #64748b;
+    color: var(--text-secondary);
     font-weight: 500;
-    transition: color 0.2s;
+    transition: all 0.2s;
     cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 20px;
 }
 
 .navLink:hover {
-    color: #2563eb;
+    color: var(--primary);
+    background: var(--primary-light);
 }
 
 .authButtons {
@@ -57,39 +60,39 @@
 }
 
 .btnOutline {
-    border: 1px solid #e2e8f0;
-    color: #0f172a;
+    border: 1px solid var(--surface-border);
+    color: var(--text-heading);
     background: transparent;
 }
 
 .btnOutline:hover {
-    background: #f8fafc;
+    background: var(--background-alt);
 }
 
 .btnPrimary {
-    background: #2563eb;
+    background: var(--primary);
     color: white;
     border: none;
-    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 6px -1px var(--primary-glow);
 }
 
 .btnPrimary:hover {
-    background: #1d4ed8;
+    opacity: 0.9;
     transform: translateY(-1px);
 }
 
 /* Hero Section */
 .hero {
-    padding: 80px 20px;
+    padding: 120px 20px;
     text-align: center;
-    background: radial-gradient(circle at top right, #eff6ff 0%, #ffffff 50%);
+    /* Background handled by container */
 }
 
 .label {
     display: inline-block;
     padding: 6px 16px;
-    background: #dbeafe;
-    color: #2563eb;
+    background: var(--primary-light);
+    color: var(--primary);
     border-radius: 99px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -101,14 +104,12 @@
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 24px;
-    background: linear-gradient(to right, #0f172a, #334155);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--text-heading);
 }
 
 .description {
     font-size: 1.25rem;
-    color: #64748b;
+    color: var(--text-body);
     max-width: 700px;
     margin: 0 auto 40px;
     line-height: 1.6;
@@ -117,7 +118,17 @@
 /* Services */
 .services {
     padding: 80px 40px;
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .services {
+        background: rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.05);
+    }
 }
 
 .sectionTitle {
@@ -125,7 +136,7 @@
     font-weight: 700;
     text-align: center;
     margin-bottom: 60px;
-    color: #0f172a;
+    color: var(--text-heading);
 }
 
 .grid {
@@ -137,10 +148,10 @@
 }
 
 .card {
-    background: white;
+    background: var(--surface);
     padding: 32px;
     border-radius: 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--surface-border);
     transition: transform 0.2s;
 }
 
@@ -152,12 +163,12 @@
 .cardIcon {
     width: 48px;
     height: 48px;
-    background: #eff6ff;
+    background: var(--primary-light);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #2563eb;
+    color: var(--primary);
     margin-bottom: 20px;
 }
 
@@ -165,11 +176,11 @@
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 12px;
-    color: #0f172a;
+    color: var(--text-heading);
 }
 
 .cardText {
-    color: #64748b;
+    color: var(--text-body);
     line-height: 1.6;
 }
 
@@ -192,10 +203,12 @@
 
 /* Footer */
 .footer {
-    background: #0f172a;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(20px);
     color: white;
     padding: 60px 40px;
     margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footerContent {
