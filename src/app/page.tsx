@@ -84,42 +84,44 @@ export default function LandingPage() {
 
             {/* Policies Section */}
             <section id="policies" className={styles.section}>
-                <h2 className={styles.sectionTitle}>Our Policies</h2>
-                <div className={styles.grid} style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <div className={styles.textBlock}>
-                        <h3 className={styles.h3}>🔒 Code Privacy</h3>
-                        <p className={styles.cardText}>
-                            Your strategy logic is your intellectual property. We sign NDAs upon request
-                            and guarantee that your code is never shared or reused for other clients.
-                        </p>
-                    </div>
-                    <div className={styles.textBlock}>
-                        <h3 className={styles.h3}>✅ Revision Guarantee</h3>
-                        <p className={styles.cardText}>
-                            We provide 14 days of free support after delivery. If the code deviates
-                            from your initial requirements, we fix it for free.
-                        </p>
-                    </div>
-                    <div className={styles.textBlock}>
-                        <h3 className={styles.h3}>💰 Refund Policy</h3>
-                        <p className={styles.cardText}>
-                            If we cannot deliver the project as scoped, you receive a full refund.
-                            Payments are held in escrow until key milestones are met.
-                        </p>
-                    </div>
-                    <div className={styles.textBlock}>
-                        <h3 className={styles.h3}>⏱️ Delivery Timeline</h3>
-                        <p className={styles.cardText}>
-                            Standard projects are delivered within 3-5 business days. Expedited
-                            24-hour delivery is available for urgent requests.
-                        </p>
+                <div className={styles.sectionContent}>
+                    <h2 className={styles.sectionTitle}>Our Policies</h2>
+                    <div className={styles.grid} style={{ gridTemplateColumns: '1fr 1fr' }}>
+                        <div className={styles.textBlock}>
+                            <h3 className={styles.h3}>🔒 Code Privacy</h3>
+                            <p className={styles.cardText}>
+                                Your strategy logic is your intellectual property. We sign NDAs upon request
+                                and guarantee that your code is never shared or reused for other clients.
+                            </p>
+                        </div>
+                        <div className={styles.textBlock}>
+                            <h3 className={styles.h3}>✅ Revision Guarantee</h3>
+                            <p className={styles.cardText}>
+                                We provide 14 days of free support after delivery. If the code deviates
+                                from your initial requirements, we fix it for free.
+                            </p>
+                        </div>
+                        <div className={styles.textBlock}>
+                            <h3 className={styles.h3}>💰 Refund Policy</h3>
+                            <p className={styles.cardText}>
+                                If we cannot deliver the project as scoped, you receive a full refund.
+                                Payments are held in escrow until key milestones are met.
+                            </p>
+                        </div>
+                        <div className={styles.textBlock}>
+                            <h3 className={styles.h3}>⏱️ Delivery Timeline</h3>
+                            <p className={styles.cardText}>
+                                Standard projects are delivered within 3-5 business days. Expedited
+                                24-hour delivery is available for urgent requests.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className={styles.services} style={{ background: '#eff6ff' }}>
-                <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+            <section id="contact" className={styles.contactSection}>
+                <div className={styles.sectionContent} style={{ maxWidth: '600px' }}>
                     <h2 className={styles.sectionTitle}>Get In Touch</h2>
                     <p className={styles.description} style={{ marginBottom: '32px' }}>
                         Have a question before starting? Send us a message and our lead developer
