@@ -153,7 +153,7 @@ export default function LoginPage() {
                 <div className={styles.footer}>
                     {authMode === 'login' ? (
                         <>
-                            Don't have an account?{' '}
+                            Don&apos;t have an account?{' '}
                             <span className={styles.link} onClick={() => setAuthMode('signup')}>Sign up</span>
                         </>
                     ) : (

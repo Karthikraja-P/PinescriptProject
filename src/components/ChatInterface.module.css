@@ -145,10 +145,18 @@
 }
 
 /* Attachments */
-.imagePreview {
-    max-width: 200px;
-    border-radius: 8px;
+.imageWrapper {
     margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.imagePreview {
+    max-width: 100%;
+    max-height: 250px;
+    /* Limit height */
+    object-fit: contain;
     display: block;
 }
 

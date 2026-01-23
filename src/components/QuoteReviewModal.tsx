@@ -45,7 +45,7 @@ export default function QuoteReviewModal({ request, onClose, onAccept, onDecline
                     <div style={{ marginTop: '16px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
                         <span style={{ color: '#64748b', display: 'block', marginBottom: '4px', fontSize: '0.9rem' }}>Developer Notes:</span>
                         <p style={{ fontSize: '0.95rem', color: '#334155', fontStyle: 'italic' }}>
-                            "Please review the requirements. This quote includes 2 revisions."
+                            &quot;Please review the requirements. This quote includes 2 revisions.&quot;
                         </p>
                     </div>
                 </div>

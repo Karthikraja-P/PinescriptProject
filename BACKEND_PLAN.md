@@ -1,50 +1,72 @@
-# Backend Implementation Plan
+# Backend Implementation Plan (DynamoDB Edition)
 
-## 1. Database Architecture
-We will use **Prisma ORM** with **SQLite** for the initial local development. This ensures zero-configuration setup (no need to install a database server). It can be easily switched to PostgreSQL for production.
+## 1. Database Architecture: AWS DynamoDB
 
-### Schema Design
-**User**
-*   `id`: String (UUID)
-*   `email`: String (Unique)
-*   `password`: String (Hashed)
-*   `name`: String
-*   `role`: Enum (ADMIN, CLIENT)
+We will use **AWS DynamoDB** with a **Single Table Design** pattern. This means ALL data (Users, Projects, Messages) will live in one table: **`PinescriptProjects`**.
 
-**Project**
-*   `id`: String (UUID)
-*   `userId`: String (Foreign Key)
-*   `title`: String
-*   `type`: String (Strategy/Indicator)
-*   `description`: String
-*   `budgetRange`: String
-*   `status`: Enum (SUBMITTED, QUOTED, PAID, IN_PROGRESS, COMPLETED)
-*   `createdAt`: DateTime
+### Table Schema
+*   **Table Name**: `PinescriptProjects`
+*   **Partition Key (PK)**: `String`
+*   **Sort Key (SK)**: `String`
+*   **GSI1 (Global Secondary Index)**:
+    *   **GSI1PK**: `String`
+    *   **GSI1SK**: `String`
 
-**Quote** (One-to-One with Project)
-*   `id`: String
-*   `projectId`: String
-*   `amount`: Float
-*   `currency`: String (USD)
-*   `estimatedDays`: Int
-*   `validUntil`: DateTime
+### Data Models (how we map data)
+
+#### 1. User Credentials
+Stores user profile and authentication data.
+*   **PK**: `USER#<email>`
+*   **SK**: `PROFILE`
+*   **Attributes**: `email`, `passwordHash`, `name`, `role` (ADMIN/CLIENT), `createdAt`
+
+#### 2. Projects
+Stores the main project requests.
+*   **PK**: `USER#<email>`
+*   **SK**: `PROJECT#<projectId>`
+*   **GSI1PK**: `ADMIN#ALL_PROJECTS` (For Admin Dashboard)
+*   **GSI1SK**: `TIMESTAMP#<createdAt>`
+*   **Attributes**: `id`, `title`, `description`, `budget`, `status`, `createdAt`...
+
+
+
+#### 3. Messages (Chat)
+Stores communication for a specific project.
+*   **PK**: `PROJECT#<projectId>`
+*   **SK**: `MSG#<timestamp>`
+*   **Attributes**: `sender` (email), `content`, `attachments`
+*   **Status**: Implemented (Server Actions + DynamoDB)
+
+#### 4. File Uploads
+*   **Mechanism**: Base64 encoding stored in DynamoDB `MSG` items (Message Attachments).
+*   **Limits**: 200KB per file (Client-side enforced).
+*   **Status**: Implemented.
+
+#### 5. Email Notifications
+*   **Service**: AWS SES (via `@aws-sdk/client-ses`).
+*   **Triggers**: Welcome, New Project, Quote Sent, Payment Received.
+*   **Status**: Implemented.
 
 ## 2. Authentication
-*   **NextAuth.js v5**: For secure session management.
-*   **Credentials Provider**: Email/Password login.
-*   **Protection**: Middleware to protect `/dashboard` (Clients) and `/admin` (Admins).
+*   **NextAuth.js v5**:
+*   **Strategy**: custom `CredentialsProvider` that queries the `USER#<email>` item from our `PinescriptProjects` table.
+*   **Sessions**: JWT (Stateless). We won't store sessions in DB to save RCU/WCU, but we can if needed.
 
-## 3. Server Actions (The Glue)
-Instead of traditional API routes, we will use Next.js Server Actions for type-safe, direct backend calls.
+## 3. Server Actions & API
+*   `db.ts`: `DynamoDBDocumentClient` instance.
+*   **User Actions**: `registerUser`, `loginUser` (verify pwd).
+*   **Project Actions**: `createProject`, `getDashboardProjects`.
+*   **Admin Actions**: `getAllProjects`, `sendQuote`.
 
-*   `submitProjectRequest(data)`: Creates a project record linked to the current user.
-*   `getDashboardProjects()`: Fetches projects for the logged-in user.
-*   `getAdminProjects()`: Fetches all projects for the admin board.
-*   `createQuote(projectId, amount, days)`: Admin action to send a quote.
-*   `capturePayment(orderId)`: Handles PayPal success and updates project status.
+## 4. Immediate Implementation Steps
+1.  **Dependencies**: Installed `@aws-sdk/*`.
+2.  **Environment**: configured `.env`.
+3.  **Database**: Table `PinescriptProjects` created.
+4.  **Next Step**: Implement `src/lib/db-actions.ts` for User/Project CRUD.
+5.  **Refactor**: Wire up "Start Project" form.
 
-## 4. Immediate Next Steps
-1.  Install Prisma & Initialize SQLite.
-2.  Define the `schema.prisma` file.
-3.  Set up the database client.
-4.  Refactor the "Start Project" form to submit to the database instead of LocalStorage.
+
+#### 6. Admin Reports
+*   **Features**: Revenue calculation, Project stats (Active, Pending, Completed).
+*   **Visualization**: Custom CSS Bar Charts.
+*   **Status**: Implemented.

@@ -1,14 +1,15 @@
 'use server'
 
-import { prisma } from "@/lib/prisma";
+import { createProject, createUser, getUserByEmail, getUserProjects } from "@/lib/db-actions";
 import { hash } from "bcryptjs";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+import { sendWelcomeEmail, sendNewProjectAdminNotification } from "@/lib/email";
 
 export async function submitProjectRequest(prevState: any, formData: FormData) {
-    const session = await getServerSession(authOptions);
+    const session: any = await getServerSession(authOptions);
 
-    if (!session || !session.user || !(session.user as any).id) {
+    if (!session || !session.user || !session.user.email) {
         return { error: "You must be logged in to submit a project." };
     }
 
@@ -21,15 +22,22 @@ export async function submitProjectRequest(prevState: any, formData: FormData) {
     }
 
     try {
-        await prisma.project.create({
-            data: {
-                userId: (session.user as any).id,
-                type,
-                budget,
-                description,
-                title: "New Project Request",
-                status: "SUBMITTED"
-            }
+        await createProject({
+            userId: session.user.id || `USER#${session.user.email}`,
+            userEmail: session.user.email,
+            title: "New Project Request",
+            type,
+            budget,
+            description,
+            status: "SUBMITTED"
+        });
+
+        // Notify Admin
+        await sendNewProjectAdminNotification({
+            userEmail: session.user.email,
+            title: "New Project Request", // Or dynamic if we had a title field
+            budget,
+            description
         });
 
         return { success: true };
@@ -50,9 +58,7 @@ export async function registerUser(prevState: any, formData: FormData) {
 
     try {
         // Check existing
-        const exists = await prisma.user.findUnique({
-            where: { email }
-        });
+        const exists = await getUserByEmail(email);
 
         if (exists) {
             return { error: "User already exists with this email." };
@@ -60,18 +66,34 @@ export async function registerUser(prevState: any, formData: FormData) {
 
         const hashedPassword = await hash(password, 10);
 
-        await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: "CLIENT"
-            }
+        await createUser({
+            name,
+            email,
+            passwordHash: hashedPassword,
+            role: "CLIENT"
         });
+
+        await sendWelcomeEmail(email, name);
 
         return { success: true };
     } catch (error) {
         console.error("Registration error:", error);
         return { error: "Something went wrong. Please try again." };
+    }
+}
+
+export async function fetchMyProjects() {
+    const session: any = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const projects = await getUserProjects(session.user.email);
+        return { success: true, data: projects };
+    } catch (e) {
+        console.error("Fetch projects error:", e);
+        return { error: "Failed to fetch projects" };
     }
 }

@@ -30,7 +30,8 @@ export default function PaymentModal({ amount, invoiceId, onClose, onSuccess }: 
                         Paying <strong>${numericAmount}</strong> for Invoice <strong>#{invoiceId}</strong>
                     </p>
 
-                    <PayPalScriptProvider options={{ clientId: "test" }}>
+                    {/* Replace with env variable in production */}
+                    <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test" }}>
                         <PayPalButtons
                             style={{ layout: "vertical" }}
                             createOrder={(data, actions) => {
@@ -47,13 +48,25 @@ export default function PaymentModal({ amount, invoiceId, onClose, onSuccess }: 
                                     ],
                                 });
                             }}
-                            onApprove={(data, actions) => {
+                            onApprove={async (data, actions) => {
                                 if (actions.order) {
-                                    return actions.order.capture().then((details) => {
-                                        onSuccess(details);
+                                    const details = await actions.order.capture();
+
+                                    // Call Server Action to record
+                                    const { processPayment } = await import("@/app/payment-actions");
+                                    const result = await processPayment({
+                                        projectId: invoiceId, // Assuming invoiceId maps to ProjectId in our simple schema
+                                        orderId: data.orderID,
+                                        amount: numericAmount,
+                                        currency: "USD"
                                     });
+
+                                    if (result.success) {
+                                        onSuccess(details);
+                                    } else {
+                                        setError("Payment processed but server update failed. Please contact support.");
+                                    }
                                 }
-                                return Promise.resolve();
                             }}
                             onError={(err) => {
                                 setError("Payment failed. Please try again.");
