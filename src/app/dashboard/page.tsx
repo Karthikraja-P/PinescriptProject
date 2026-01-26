@@ -12,6 +12,9 @@ export default async function DashboardPage() {
     }
 
     const projects = await getUserProjects(session.user.email);
+    const { getUserPayments, getUserByEmail } = await import("@/lib/db-actions");
+    const payments = await getUserPayments(session.user.email);
+    const userProfile = await getUserByEmail(session.user.email);
 
     const normalizedProjects = projects.map((p: any) => ({
         id: p.id || (p.SK ? p.SK.split('#')[1] : 'Unknown'),
@@ -26,10 +29,20 @@ export default async function DashboardPage() {
         quote: p.quote // Keep the full object for detailed review
     }));
 
+    // Normalize Payments
+    const normalizedPayments = payments.map((p: any) => ({
+        id: p.SK.replace('PAYMENT#', ''),
+        date: new Date(p.createdAt).toLocaleDateString(),
+        amount: `${p.amount} ${p.currency}`, // Assuming amount is just number string
+        status: p.status, // usually COMPLETED
+        project: `Project ${p.projectId.substring(0, 8)}` // We might not have project title easily in payment record unless we joined, but we stored GSI1PK as project ID so we can guess. Ideally we'd map it.
+    }));
+
     return (
         <ClientDashboard
-            user={session.user}
+            user={{ ...session.user, ...userProfile }} // Merge session info with DB info (like tvUsername)
             initialProjects={normalizedProjects}
+            initialPayments={normalizedPayments}
         />
     );
 }

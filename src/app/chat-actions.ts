@@ -38,6 +38,11 @@ export async function sendMessageAction(projectId: string, content: string, atta
             attachments
         });
 
+        if (projectId.startsWith('SUPPORT_')) {
+            const { createSupportConversation } = await import("@/lib/db-actions");
+            await createSupportConversation(email);
+        }
+
         return { success: true, message };
     } catch (e) {
         console.error("Failed to send message", e);

@@ -11,17 +11,16 @@ import styles from './page.module.css';
 interface DashboardClientProps {
     user: any;
     initialProjects: any[];
+    initialPayments: any[];
 }
 
-export default function ClientDashboard({ user, initialProjects }: DashboardClientProps) {
+export default function ClientDashboard({ user, initialProjects, initialPayments }: DashboardClientProps) {
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedPayment, setSelectedPayment] = useState<{ amount: string, id: string } | null>(null);
     const [quoteToReview, setQuoteToReview] = useState<any>(null);
 
-    const mockPayments = [
-        { id: 'INV-2024-001', date: 'Jan 15, 2025', amount: '$120.00', status: 'Paid', project: 'Volume Profile' },
-        { id: 'INV-2024-002', date: 'Jan 24, 2025', amount: '$50.00', status: 'Unpaid', project: 'RSI Alert' },
-    ];
+    // Payments State
+    const [myPayments, setMyPayments] = useState(initialPayments);
 
 
     // Requests State - Use Server Data
@@ -31,7 +30,7 @@ export default function ClientDashboard({ user, initialProjects }: DashboardClie
     const [userProfile, setUserProfile] = useState({
         name: user?.name || 'Client User',
         email: user?.email || 'client@pinescript.com',
-        tvUsername: 'TraderJoe' // This would ideally come from DB too
+        tvUsername: user?.tvUsername || '' // Now coming from DB
     });
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editForm, setEditForm] = useState(userProfile);
@@ -54,9 +53,21 @@ export default function ClientDashboard({ user, initialProjects }: DashboardClie
         setIsEditingProfile(true);
     };
 
-    const saveProfile = () => {
+    const saveProfile = async () => {
+        // Optimistic Update
         setUserProfile(editForm);
         setIsEditingProfile(false);
+
+        // Server Action
+        const formData = new FormData();
+        formData.append("name", editForm.name);
+        formData.append("tvUsername", editForm.tvUsername);
+
+        const { updateUserAction } = await import('@/app/actions');
+        const res = await updateUserAction(formData);
+        if (!res.success) {
+            alert('Failed to save profile on server.');
+        }
     };
 
     const cancelEditing = () => {
@@ -110,8 +121,24 @@ export default function ClientDashboard({ user, initialProjects }: DashboardClie
     };
 
     const handleDownload = (project: any) => {
-        const msg = project.deliveryMessage ? `Dev Message: "${project.deliveryMessage}"` : 'Files are ready.';
-        alert(`${msg}\n\nDownloading ${project.files ? project.files.length : '1'} file(s)...`);
+        if (!project.files || project.files.length === 0) {
+            alert('No files available for download.');
+            return;
+        }
+
+        project.files.forEach((fileName: string) => {
+            // Simulate file content since we don't have actual storage connected
+            const content = `Placeholder content for ${fileName}\n\nDelivery Message:\n${project.deliveryMessage}`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName; // 'strategy.pine'
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
     };
 
     // --- SUB-COMPONENTS ---
@@ -287,21 +314,16 @@ export default function ClientDashboard({ user, initialProjects }: DashboardClie
                         </tr>
                     </thead>
                     <tbody>
-                        {/* 
-                            TODO: Pass real 'payments' prop from server. 
-                            For now, we can infer some history from Paid projects, 
-                            but let's show empty state to remove confusion of dummy data.
-                        */}
-                        {myProjects.filter(p => p.status === 'In Progress' || p.status === 'Completed').length === 0 ? (
+                        {myPayments.length === 0 ? (
                             <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>No payment history available.</td></tr>
                         ) : (
-                            myProjects.filter(p => p.status === 'In Progress' || p.status === 'Completed').map(p => (
+                            myPayments.map((p: any) => (
                                 <tr key={p.id}>
-                                    <td>INV-{p.id.substring(0, 4)}</td>
-                                    <td>{new Date().toLocaleDateString()}</td>
-                                    <td>{p.title}</td>
-                                    <td>{p.price}</td>
-                                    <td><span className={`${styles.badge} ${styles.statusActive}`}>Paid</span></td>
+                                    <td>{p.id}</td>
+                                    <td>{p.date}</td>
+                                    <td>{p.project}</td>
+                                    <td>{p.amount}</td>
+                                    <td><span className={`${styles.badge} ${styles.statusActive}`}>{p.status}</span></td>
                                     <td><span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Receipt</span></td>
                                 </tr>
                             ))

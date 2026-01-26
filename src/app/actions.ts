@@ -97,3 +97,23 @@ export async function fetchMyProjects() {
         return { error: "Failed to fetch projects" };
     }
 }
+
+export async function updateUserAction(formData: FormData) {
+    const session: any = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+        return { error: "Unauthorized" };
+    }
+
+    const name = formData.get("name") as string;
+    const tvUsername = formData.get("tvUsername") as string;
+
+    try {
+        const { updateUser } = await import("@/lib/db-actions");
+        await updateUser(session.user.email, { name, tvUsername });
+        return { success: true };
+    } catch (e) {
+        console.error("Update profile error:", e);
+        return { error: "Failed to update profile" };
+    }
+}

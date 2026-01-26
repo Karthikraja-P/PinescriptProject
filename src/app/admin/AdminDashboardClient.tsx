@@ -9,6 +9,7 @@ import styles from './dev.module.css';
 
 interface AdminDashboardClientProps {
     initialEnquiries: any[];
+    initialSupportChats: any[];
     currentUserEmail: string;
 }
 
@@ -20,7 +21,7 @@ interface Stats {
     completed: number;
 }
 
-export default function AdminDashboard({ initialEnquiries, currentUserEmail }: AdminDashboardClientProps) {
+export default function AdminDashboard({ initialEnquiries, initialSupportChats, currentUserEmail }: AdminDashboardClientProps) {
     const [activeView, setActiveView] = useState('dashboard');
     const [notifications, setNotifications] = useState(0);
     const [enquiries, setEnquiries] = useState(initialEnquiries);
@@ -96,21 +97,29 @@ export default function AdminDashboard({ initialEnquiries, currentUserEmail }: A
         alert(`Quote sent successfully!`);
     };
 
-    const handleDeliverProject = (files: string[], message: string) => {
-        // 1. Update Local State
+    const handleDeliverProject = async (files: string[], message: string) => {
+        if (!projectToDeliver) return;
+
+        // 1. Call Server Action
+        const { deliverProjectAction } = await import("@/app/admin-actions");
+        const result = await deliverProjectAction({
+            projectId: projectToDeliver.id,
+            userId: projectToDeliver.userId,
+            userEmail: projectToDeliver.userEmail,
+            files: files,
+            message: message
+        });
+
+        if (result.error) {
+            alert("Failed to deliver project: " + result.error);
+            return;
+        }
+
+        // 2. Update Local State (Optimistic)
         const updatedEnquiries = enquiries.map(e =>
-            e.id === projectToDeliver.id ? { ...e, status: 'Completed' } : e
+            e.id === projectToDeliver.id ? { ...e, status: 'Completed', files, deliveryMessage: message } : e
         );
         setEnquiries(updatedEnquiries);
-
-        // 2. Persist to LocalStorage
-        const localRequests = JSON.parse(localStorage.getItem('mock_requests') || '[]');
-        const updatedRequests = localRequests.map((r: any) =>
-            r.id === projectToDeliver.id
-                ? { ...r, status: 'Completed', files: files, deliveryMessage: message }
-                : r
-        );
-        localStorage.setItem('mock_requests', JSON.stringify(updatedRequests));
 
         // 3. Clear Selection
         setProjectToDeliver(null);
@@ -309,7 +318,11 @@ export default function AdminDashboard({ initialEnquiries, currentUserEmail }: A
 
         // Admin sees all projects that are not 'New' (i.e., real interactions)
         const chatList = [
-            // { id: 'general', title: 'General Support' }, // TODO: Implement support tickets list
+            // Include General Support Chats from initialSupportChats
+            ...(initialSupportChats || []).map(c => ({
+                id: c.id,
+                title: `${c.client} - Support`
+            })),
             ...enquiries.filter(e => e.status !== 'New').map(e => ({
                 id: e.id,
                 title: `${e.client} - ${e.type}`

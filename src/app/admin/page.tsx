@@ -8,17 +8,18 @@ export default async function AdminPage() {
     const session: any = await getServerSession(authOptions);
 
     // Simple Admin check (real app should check user role)
-    if (!session || !session.user || session.user.role !== 'ADMIN') {
-        // redirect("/auth?mode=login"); 
-        // For development, we allow access if just logged in or handle role strictly.
-        // Let's assume user.role is set if using our DB registration
-        // If not admin, redirect to dashboard or error
-        if (session?.user?.role !== 'ADMIN') {
-            // redirect("/dashboard");
-        }
+    // Simple Admin check (real app should check user role)
+    if (!session || !session.user) {
+        redirect("/auth?mode=login");
+    }
+
+    if (session.user.role !== 'ADMIN') {
+        redirect("/dashboard");
     }
 
     const projects = await getAllProjectsAdmin();
+    const { getAdminSupportChats } = await import("@/lib/db-actions");
+    const supportChats = await getAdminSupportChats();
 
     // Map DynamoDB items to the structure Admin Dashboard expects
     const formattedEnquiries = projects.map((p: any) => ({
@@ -33,9 +34,17 @@ export default async function AdminPage() {
         // ... any active project/quote details
     }));
 
+    const formattedSupportChats = supportChats.map((c: any) => ({
+        id: `SUPPORT_${c.userEmail}`,
+        client: c.userEmail,
+        type: 'General Support',
+        status: 'Open'
+    }));
+
     return (
         <AdminDashboardClient
             initialEnquiries={formattedEnquiries}
+            initialSupportChats={formattedSupportChats}
             currentUserEmail={session?.user?.email || ""}
         />
     );

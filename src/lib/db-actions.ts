@@ -72,6 +72,42 @@ export async function getUserByEmail(email: string) {
     return null;
 }
 
+export async function updateUser(email: string, updates: { name?: string; tvUsername?: string }) {
+    const pk = `USER#${email}`;
+    const sk = `PROFILE`;
+
+    const updateExpressions: string[] = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, any> = {};
+
+    if (updates.name) {
+        updateExpressions.push("#name = :name");
+        expressionAttributeNames["#name"] = "name";
+        expressionAttributeValues[":name"] = updates.name;
+    }
+
+    if (updates.tvUsername) {
+        updateExpressions.push("#tv = :tv");
+        expressionAttributeNames["#tv"] = "tvUsername";
+        expressionAttributeValues[":tv"] = updates.tvUsername;
+    }
+
+    if (updateExpressions.length === 0) return { success: true }; // Nothing to update
+
+    updateExpressions.push("updatedAt = :t");
+    expressionAttributeValues[":t"] = new Date().toISOString();
+
+    await db.send(new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: { PK: pk, SK: sk },
+        UpdateExpression: `set ${updateExpressions.join(", ")}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues
+    }));
+
+    return { success: true };
+}
+
 /**
  * Creates a new project.
  * Partition Key: USER#<email>
@@ -260,4 +296,41 @@ export async function checkProjectOwnership(userEmail: string, projectId: string
     }));
 
     return !!result.Item;
+}
+
+export async function createSupportConversation(userEmail: string) {
+    // Create a record so Admin can find this chat
+    const timestamp = new Date().toISOString();
+    const item = {
+        PK: `SUPPORT#${userEmail}`,
+        SK: `META`,
+        GSI1PK: `ADMIN#SUPPORT_CHATS`,
+        GSI1SK: `TIMESTAMP#${timestamp}`,
+        userEmail,
+        lastMessage: "New support conversation started",
+        updatedAt: timestamp
+    };
+
+    try {
+        await db.send(new PutCommand({
+            TableName: TABLE_NAME,
+            Item: item,
+            ConditionExpression: "attribute_not_exists(PK)"
+        }));
+    } catch (e) {
+        // Ignore if exists
+    }
+}
+
+export async function getAdminSupportChats() {
+    const result = await db.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: "GSI1",
+        KeyConditionExpression: "GSI1PK = :pk",
+        ExpressionAttributeValues: {
+            ":pk": "ADMIN#SUPPORT_CHATS"
+        },
+        ScanIndexForward: false
+    }));
+    return result.Items || [];
 }

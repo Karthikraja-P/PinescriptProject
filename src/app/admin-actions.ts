@@ -60,3 +60,40 @@ export async function submitQuote(quoteData: {
         return { error: "Failed to send quote" };
     }
 }
+
+export async function deliverProjectAction(data: {
+    projectId: string;
+    userId: string; // or PK
+    userEmail: string;
+    files: string[];
+    message: string;
+}) {
+    const pk = data.userId.startsWith('USER#') ? data.userId : `USER#${data.userEmail}`;
+    const sk = `PROJECT#${data.projectId}`;
+
+    try {
+        await db.send(new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: { PK: pk, SK: sk },
+            UpdateExpression: "set #status = :s, files = :f, deliveryMessage = :m, updatedAt = :t",
+            ExpressionAttributeNames: {
+                "#status": "status"
+            },
+            ExpressionAttributeValues: {
+                ":s": "Completed",
+                ":f": data.files, // In a real app, these would be S3 URLs
+                ":m": data.message,
+                ":t": new Date().toISOString()
+            }
+        }));
+
+        // Send Email Notification (Optional)
+        // const { sendDeliveryNotification } = await import("@/lib/email");
+        // await sendDeliveryNotification(...)
+
+        return { success: true };
+    } catch (e) {
+        console.error("Delivery error:", e);
+        return { error: "Failed to deliver project" };
+    }
+}
