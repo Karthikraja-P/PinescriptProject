@@ -9,6 +9,12 @@ export interface UserData {
     role: "ADMIN" | "CLIENT";
 }
 
+export interface ContactMessage {
+    email: string;
+    message: string;
+    createdAt?: string;
+}
+
 export interface MessageData {
     id?: string;
     sender: string; // Email or "ADMIN"
@@ -248,17 +254,16 @@ export async function getUserPayments(userEmail: string) {
  * Chat & Messaging Functions
  */
 
-export async function saveMessage(projectId: string, message: MessageData) {
+export async function saveMessage(projectId: string, message: MessageData, parentUserEmail?: string) {
     const timestamp = new Date().toISOString();
-    // Ensure we have a unique ID for the message
-    const messageId = message.id || uuidv4();
+    // ...
     const sk = `MSG#${timestamp}`;
 
     const item = {
         PK: `PROJECT#${projectId}`,
         SK: sk,
         ...message,
-        id: messageId,
+        id: message.id || uuidv4(),
         createdAt: timestamp,
     };
 
@@ -267,7 +272,48 @@ export async function saveMessage(projectId: string, message: MessageData) {
         Item: item
     }));
 
+    // Update parent item timestamp for unread tracking/sorting
+    if (parentUserEmail) {
+        try {
+            const parentPK = `USER#${parentUserEmail}`;
+            const parentSK = projectId.startsWith('SUPPORT_') ? `SUPPORT#${parentUserEmail}` : `PROJECT#${projectId}`;
+
+            await db.send(new UpdateCommand({
+                TableName: TABLE_NAME,
+                Key: { PK: parentPK, SK: parentSK },
+                UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t",
+                ExpressionAttributeValues: { ":t": timestamp }
+            }));
+        } catch (e) {
+            console.error("Failed to update parent timestamp", e);
+        }
+    }
+
     return item;
+}
+
+export async function updateLastRead(userEmail: string, chatId: string) {
+    const timestamp = new Date().toISOString();
+    await db.send(new PutCommand({
+        TableName: TABLE_NAME,
+        Item: {
+            PK: `USER#${userEmail}`,
+            SK: `CHATMETA#${chatId}`,
+            lastReadAt: timestamp
+        }
+    }));
+}
+
+export async function getChatMetas(userEmail: string) {
+    const result = await db.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+        ExpressionAttributeValues: {
+            ":pk": `USER#${userEmail}`,
+            ":sk": "CHATMETA#"
+        }
+    }));
+    return result.Items || [];
 }
 
 export async function getProjectMessages(projectId: string) {
@@ -332,5 +378,40 @@ export async function getAdminSupportChats() {
         },
         ScanIndexForward: false
     }));
+    return result.Items || [];
+}
+export async function saveContactMessage(data: ContactMessage) {
+    const timestamp = new Date().toISOString();
+    const id = uuidv4();
+
+    const item = {
+        PK: `CONTACT#${data.email}`,
+        SK: `MSG#${id}`,
+        GSI1PK: "ADMIN#CONTACT_MESSAGES",
+        GSI1SK: `TIMESTAMP#${timestamp}`,
+        ...data,
+        createdAt: timestamp,
+        type: 'CONTACT_FORM'
+    };
+
+    await db.send(new PutCommand({
+        TableName: TABLE_NAME,
+        Item: item
+    }));
+
+    return item;
+}
+
+export async function getAllContactMessages() {
+    const result = await db.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: "GSI1",
+        KeyConditionExpression: "GSI1PK = :pk",
+        ExpressionAttributeValues: {
+            ":pk": "ADMIN#CONTACT_MESSAGES"
+        },
+        ScanIndexForward: false // Newest first
+    }));
+
     return result.Items || [];
 }

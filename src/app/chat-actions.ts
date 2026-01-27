@@ -31,12 +31,27 @@ export async function sendMessageAction(projectId: string, content: string, atta
     }
 
     try {
+        // For parent update, we need the client's email
+        let parentEmail = email;
+        if (role === 'ADMIN') {
+            // If admin is sending, the parent is the client's project.
+            // We need to extract the client email. 
+            // In support chats, the projectId is SUPPORT_<clientEmail>.
+            if (projectId.startsWith('SUPPORT_')) {
+                parentEmail = projectId.replace('SUPPORT_', '');
+            } else {
+                // For projects, we might need a lookup, but for now let's try to get it if possible.
+                // Or we can assume Admin knows which user they are messaging.
+                // For now, if role is ADMIN, we might need more info.
+            }
+        }
+
         const message = await saveMessage(projectId, {
             sender: email,
             senderRole: role,
             content,
             attachments
-        });
+        }, parentEmail);
 
         if (projectId.startsWith('SUPPORT_')) {
             const { createSupportConversation } = await import("@/lib/db-actions");
@@ -68,6 +83,11 @@ export async function fetchMessagesAction(projectId: string) {
 
     try {
         const messages = await getProjectMessages(projectId);
+
+        // Mark as read
+        const { updateLastRead } = await import("@/lib/db-actions");
+        await updateLastRead(email, projectId);
+
         return { success: true, messages };
     } catch (e) {
         console.error("Fetch messages error:", e);

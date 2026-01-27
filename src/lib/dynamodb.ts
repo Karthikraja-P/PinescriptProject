@@ -1,5 +1,8 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const config = {
     region: process.env.AWS_REGION || "us-east-1",

@@ -12,12 +12,14 @@ interface DashboardClientProps {
     user: any;
     initialProjects: any[];
     initialPayments: any[];
+    initialChatMetas: any[];
 }
 
-export default function ClientDashboard({ user, initialProjects, initialPayments }: DashboardClientProps) {
+export default function ClientDashboard({ user, initialProjects, initialPayments, initialChatMetas }: DashboardClientProps) {
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedPayment, setSelectedPayment] = useState<{ amount: string, id: string } | null>(null);
     const [quoteToReview, setQuoteToReview] = useState<any>(null);
+    const [viewingProject, setViewingProject] = useState<any>(null);
 
     // Payments State
     const [myPayments, setMyPayments] = useState(initialPayments);
@@ -159,7 +161,10 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                     <span>💳</span> Payments
                 </div>
                 <div className={`${styles.navItem} ${activeView === 'messages' ? styles.navActive : ''}`} onClick={() => setActiveView('messages')}>
-                    <span>💬</span> Messages
+                    <span>💬</span> Messages {initialProjects.some(p => {
+                        const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${p.id}`);
+                        return p.lastMessageAt && (!meta || meta.lastReadAt < p.lastMessageAt);
+                    }) ? <span className={styles.navBadge}>●</span> : null}
                 </div>
                 <div className={`${styles.navItem} ${activeView === 'profile' ? styles.navActive : ''}`} onClick={() => setActiveView('profile')}>
                     <span>👤</span> Profile
@@ -285,7 +290,13 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                                             Download
                                         </button>
                                     ) : (
-                                        <button className={`${styles.btn} ${styles.btnOutline}`} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>View</button>
+                                        <button
+                                            className={`${styles.btn} ${styles.btnOutline}`}
+                                            style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                                            onClick={() => setViewingProject(p)}
+                                        >
+                                            View
+                                        </button>
                                     )}
                                 </td>
                             </tr>
@@ -367,7 +378,12 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                                     onClick={() => setSelectedChatId(chat.id)}
                                     className={`${styles.chatSidebarItem} ${selectedChatId === chat.id ? styles.chatSidebarItemActive : ''}`}
                                 >
-                                    <div style={{ color: '#1e293b', fontWeight: 500, fontSize: '0.9rem', marginBottom: '4px' }}>{chat.title}</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ color: '#1e293b', fontWeight: 500, fontSize: '0.9rem', marginBottom: '4px' }}>{chat.title}</div>
+                                        {chat.id !== 'general' && (initialProjects.find(p => p.id === chat.id)?.lastMessageAt > (initialChatMetas.find(m => m.SK === `CHATMETA#${chat.id}`)?.lastReadAt || '')) && (
+                                            <span style={{ width: '8px', height: '8px', background: '#3b82f6', borderRadius: '50%' }}></span>
+                                        )}
+                                    </div>
                                     <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.id === 'general' ? 'Support' : chat.status}</div>
                                 </div>
                             ))}
@@ -462,6 +478,56 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
         </>
     );
 
+    const ProjectDetailModal = ({ project, onClose }: { project: any, onClose: () => void }) => (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <div className={styles.card} style={{ width: '500px', maxHeight: '90vh', overflowY: 'auto', padding: '0' }}>
+                <div className={styles.cardHeader}>
+                    <span>Request Details</span>
+                    <button className={styles.btnOutline} onClick={onClose}>✕</button>
+                </div>
+                <div style={{ padding: '24px' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <div className={styles.label}>Status</div>
+                        <span className={`${styles.badge} ${project.status === 'Completed' ? styles.statusCompleted :
+                            project.status === 'In Progress' ? styles.statusActive :
+                                project.status === 'New' ? styles.statusNew : styles.statusQuote
+                            }`}>{project.status}</span>
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                        <div className={styles.label}>Title</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#1e293b' }}>{project.title}</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <div>
+                            <div className={styles.label}>Type</div>
+                            <div style={{ fontWeight: 500 }}>{project.type}</div>
+                        </div>
+                        <div>
+                            <div className={styles.label}>Budget</div>
+                            <div style={{ fontWeight: 500 }}>{project.budget || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '24px' }}>
+                        <div className={styles.label}>Description</div>
+                        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}>
+                            {project.description || 'No description provided.'}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        {project.status === 'Quote Sent' && (
+                            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => { setQuoteToReview(project); onClose(); }}>
+                                Review Quote
+                            </button>
+                        )}
+                        <button className={`${styles.btn} ${styles.btnOutline}`} style={{ flex: 1 }} onClick={() => { setActiveView('messages'); onClose(); }}>
+                            Messages
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className={styles.layout}>
             <Sidebar />
@@ -471,6 +537,13 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                 {activeView === 'payments' && <PaymentsView />}
                 {activeView === 'messages' && <MessagesView />}
                 {activeView === 'profile' && <ProfileView />}
+
+                {viewingProject && (
+                    <ProjectDetailModal
+                        project={viewingProject}
+                        onClose={() => setViewingProject(null)}
+                    />
+                )}
 
                 {/* Quote Review Modal */}
                 {quoteToReview && (

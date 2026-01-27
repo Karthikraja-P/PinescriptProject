@@ -12,9 +12,10 @@ export default async function DashboardPage() {
     }
 
     const projects = await getUserProjects(session.user.email);
-    const { getUserPayments, getUserByEmail } = await import("@/lib/db-actions");
+    const { getUserPayments, getUserByEmail, getChatMetas } = await import("@/lib/db-actions");
     const payments = await getUserPayments(session.user.email);
     const userProfile = await getUserByEmail(session.user.email);
+    const chatMetas = await getChatMetas(session.user.email);
 
     const normalizedProjects = projects.map((p: any) => ({
         id: p.id || (p.SK ? p.SK.split('#')[1] : 'Unknown'),
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
             user={{ ...session.user, ...userProfile }} // Merge session info with DB info (like tvUsername)
             initialProjects={normalizedProjects}
             initialPayments={normalizedPayments}
+            initialChatMetas={chatMetas}
         />
     );
 }

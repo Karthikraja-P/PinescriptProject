@@ -128,14 +128,29 @@ export default function LandingPage() {
                         Have a question before starting? Send us a message and our lead developer
                         will get back to you within 24 hours.
                     </p>
-                    <form className={styles.card} style={{ textAlign: 'left' }} onSubmit={(e) => { e.preventDefault(); alert('Message sent!'); }}>
+                    <form
+                        className={styles.card}
+                        style={{ textAlign: 'left' }}
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            const { submitContactForm } = await import('./actions');
+                            const res = await submitContactForm(formData);
+                            if (res.success) {
+                                alert('Message sent successfully!');
+                                (e.target as HTMLFormElement).reset();
+                            } else {
+                                alert(res.error || 'Something went wrong.');
+                            }
+                        }}
+                    >
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Email Address</label>
-                            <input type="email" placeholder="you@example.com" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }} required />
+                            <input name="email" type="email" placeholder="you@example.com" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }} required />
                         </div>
                         <div style={{ marginBottom: '24px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Message</label>
-                            <textarea rows={4} placeholder="How can we help?" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }} required />
+                            <textarea name="message" rows={4} placeholder="How can we help?" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }} required />
                         </div>
                         <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ width: '100%' }}>Send Message</button>
                     </form>

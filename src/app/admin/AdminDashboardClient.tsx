@@ -10,6 +10,8 @@ import styles from './dev.module.css';
 interface AdminDashboardClientProps {
     initialEnquiries: any[];
     initialSupportChats: any[];
+    initialContactMessages: any[];
+    initialChatMetas: any[];
     currentUserEmail: string;
 }
 
@@ -21,11 +23,12 @@ interface Stats {
     completed: number;
 }
 
-export default function AdminDashboard({ initialEnquiries, initialSupportChats, currentUserEmail }: AdminDashboardClientProps) {
+export default function AdminDashboard({ initialEnquiries, initialSupportChats, initialContactMessages, initialChatMetas, currentUserEmail }: AdminDashboardClientProps) {
     const [activeView, setActiveView] = useState('dashboard');
     const [notifications, setNotifications] = useState(0);
     const [enquiries, setEnquiries] = useState(initialEnquiries);
     const [selectedEnquiry, setSelectedEnquiry] = useState<any>(null);
+    const [viewingEnquiry, setViewingEnquiry] = useState<any>(null); // For detail view
     const [projectToDeliver, setProjectToDeliver] = useState<any>(null);
     const router = useRouter();
 
@@ -135,11 +138,17 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
             <nav className={styles.nav}>
                 {[
                     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                    { id: 'enquiries', label: 'Enquiries', icon: '📩', badge: notifications },
+                    { id: 'enquiries', label: 'Enquiries', icon: '📩', badge: initialEnquiries.filter(e => e.status === 'New' || e.status === 'SUBMITTED').length },
+                    { id: 'contact', label: 'Contacts', icon: '📇', badge: initialContactMessages.length },
                     { id: 'projects', label: 'Projects', icon: '🚀' },
                     { id: 'payments', label: 'Payments', icon: '💰' },
                     { id: 'clients', label: 'Clients', icon: '👥' },
-                    { id: 'messages', label: 'Messages', icon: '💬' },
+                    {
+                        id: 'messages', label: 'Messages', icon: '💬', badge: initialSupportChats.some(c => {
+                            const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${c.id}`);
+                            return c.lastMessageAt && (!meta || meta.lastReadAt < c.lastMessageAt);
+                        }) ? '●' : null
+                    },
                     { id: 'reports', label: 'Reports', icon: '📈' },
                     { id: 'settings', label: 'Settings', icon: '⚙️' },
                 ].map(item => (
@@ -215,11 +224,10 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                     <button
                                         className={`${styles.btn} ${styles.btnPrimary}`}
                                         onClick={() => {
-                                            setActiveView('enquiries');
-                                            // Ideally we'd scroll to the item or filter, but bridging to view is good for now
+                                            setViewingEnquiry(e);
                                         }}
                                     >
-                                        Manage
+                                        View Details
                                     </button>
                                 </td>
                             </tr>
@@ -257,6 +265,13 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                         ) : (
                                             <span style={{ fontSize: '0.85rem', color: '#64748b', marginRight: '8px' }}>Action Taken</span>
                                         )}
+                                        <button
+                                            className={`${styles.btn} ${styles.btnPrimary}`}
+                                            style={{ marginRight: '8px' }}
+                                            onClick={() => setViewingEnquiry(e)}
+                                        >
+                                            Open
+                                        </button>
                                         <button className={`${styles.btn} ${styles.btnOutline}`}>Reject</button>
                                     </td>
                                 </tr>
@@ -347,7 +362,10 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                     onClick={() => setSelectedChatId(chat.id)}
                                     className={`${styles.chatSidebarItem} ${selectedChatId === chat.id ? styles.chatSidebarItemActive : ''}`}
                                 >
-                                    <div style={{ color: '#1e293b', fontWeight: 500, fontSize: '0.9rem', marginBottom: '2px' }}>{chat.title}</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ color: '#1e293b', fontWeight: 500, fontSize: '0.9rem', marginBottom: '2px' }}>{chat.title}</div>
+                                        {/* Simplified unread check for admin */}
+                                    </div>
                                     <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.id}</div>
                                 </div>
                             ))}
@@ -442,6 +460,80 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
         </>
     );
 
+    // VIEW: Contact Form Messages
+    const ContactView = () => (
+        <>
+            <div className={styles.header}><h1 className={styles.title}>Contact Form Messages</h1></div>
+            <div className={styles.card}>
+                <table className={styles.table}>
+                    <thead><tr><th>Email</th><th>Message</th><th>Date</th></tr></thead>
+                    <tbody>
+                        {initialContactMessages.length === 0 ? (
+                            <tr><td colSpan={3} className={styles.noData}>No messages received yet.</td></tr>
+                        ) : (
+                            initialContactMessages.map((m, i) => (
+                                <tr key={i}>
+                                    <td style={{ fontWeight: 600 }}>{m.email}</td>
+                                    <td>{m.message}</td>
+                                    <td style={{ whiteSpace: 'nowrap' }}>{m.createdAt ? new Date(m.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </>
+    );
+
+    // Detail Modal for Enquiry
+    const EnquiryDetailModal = ({ enquiry, onClose }: { enquiry: any, onClose: () => void }) => (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <div className={styles.card} style={{ width: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', padding: '0' }}>
+                <div className={styles.cardHeader}>
+                    <span>Project Enquiry Detail</span>
+                    <button className={styles.btnOutline} onClick={onClose}>✕</button>
+                </div>
+                <div style={{ padding: '24px' }}>
+                    <div style={{ marginBottom: '20px' }}>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Status</div>
+                        <span className={`${styles.badge} ${enquiry.status === 'New' ? styles.statusNew : styles.statusQuote}`}>{enquiry.status}</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                        <div>
+                            <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Client Email</div>
+                            <div style={{ fontWeight: 500 }}>{enquiry.userEmail}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Project Type</div>
+                            <div style={{ fontWeight: 500 }}>{enquiry.type}</div>
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Title</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{enquiry.title || 'Untitled Request'}</div>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Description</div>
+                        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                            {enquiry.description || initialEnquiries.find(e => e.id === enquiry.id)?.description || 'No description provided.'}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+                        {enquiry.status === 'New' || enquiry.status === 'SUBMITTED' ? (
+                            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => { setSelectedEnquiry(enquiry); onClose(); }}>
+                                Send Quote
+                            </button>
+                        ) : null}
+                        <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => { setActiveView('messages'); setSelectedEnquiry(null); onClose(); }}>
+                            Open Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     // Placeholder for simple views
     const PlaceholderView = ({ title }: { title: string }) => (
         <>
@@ -462,8 +554,16 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                 {activeView === 'payments' && <PlaceholderView title="Payment Transactions" />}
                 {activeView === 'clients' && <PlaceholderView title="Client Management" />}
                 {activeView === 'messages' && <MessagesView />}
+                {activeView === 'contact' && <ContactView />}
                 {activeView === 'reports' && <ReportsView />}
                 {activeView === 'settings' && <SettingsView />}
+
+                {viewingEnquiry && (
+                    <EnquiryDetailModal
+                        enquiry={viewingEnquiry}
+                        onClose={() => setViewingEnquiry(null)}
+                    />
+                )}
 
                 {selectedEnquiry && (
                     <QuoteModal

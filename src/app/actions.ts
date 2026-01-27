@@ -117,3 +117,21 @@ export async function updateUserAction(formData: FormData) {
         return { error: "Failed to update profile" };
     }
 }
+
+export async function submitContactForm(formData: FormData) {
+    const email = formData.get("email") as string;
+    const message = formData.get("message") as string;
+
+    if (!email || !message) {
+        return { error: "Email and message are required." };
+    }
+
+    try {
+        const { saveContactMessage } = await import("@/lib/db-actions");
+        await saveContactMessage({ email, message });
+        return { success: true };
+    } catch (e) {
+        console.error("Contact form error:", e);
+        return { error: "Failed to send message. Please try again." };
+    }
+}
