@@ -329,8 +329,6 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
 
     // VIEW: Messages with Project Context
     const MessagesView = () => {
-        const [selectedChatId, setSelectedChatId] = useState('general');
-
         // Admin sees all projects that are not 'New' (i.e., real interactions)
         const chatList = [
             // Include General Support Chats from initialSupportChats
@@ -338,13 +336,34 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                 id: c.id,
                 title: `${c.client} - Support`
             })),
-            ...enquiries.filter(e => e.status !== 'New').map(e => ({
+            ...enquiries.filter(e => e.status !== 'New' && e.status !== 'SUBMITTED').map(e => ({
                 id: e.id,
-                title: `${e.client} - ${e.type}`
+                title: `${e.client || e.userEmail} - ${e.type}`
             }))
         ];
 
+        // Initialize with the first valid chat, not 'general'
+        const [selectedChatId, setSelectedChatId] = useState(chatList.length > 0 ? chatList[0].id : '');
+
         const activeChat = chatList.find(c => c.id === selectedChatId) || chatList[0];
+
+        // Handle empty chat list
+        if (chatList.length === 0) {
+            return (
+                <>
+                    <div className={styles.header}><h1 className={styles.title}>Client Messages</h1></div>
+                    <div className={styles.card} style={{ padding: '40px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>💬</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>
+                            No Conversations Yet
+                        </div>
+                        <div style={{ color: '#64748b' }}>
+                            Messages will appear here once clients start projects or support chats.
+                        </div>
+                    </div>
+                </>
+            );
+        }
 
         return (
             <>
@@ -375,15 +394,21 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                     {/* Chat Area */}
                     <div className={styles.chatContent}>
                         <div className={styles.chatContentHeader}>
-                            <span style={{ fontWeight: 600, color: '#0f172a' }}>{activeChat.title}</span>
-                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Chat ID: {activeChat.id}</span>
+                            <span style={{ fontWeight: 600, color: '#0f172a' }}>{activeChat?.title || 'Select a conversation'}</span>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{activeChat?.id ? `Chat ID: ${activeChat.id}` : ''}</span>
                         </div>
                         <div className={styles.chatContentBody}>
-                            <ChatInterface
-                                chatId={selectedChatId}
-                                chatTitle={activeChat.title}
-                                currentUserEmail={currentUserEmail}
-                            />
+                            {activeChat && selectedChatId ? (
+                                <ChatInterface
+                                    chatId={selectedChatId}
+                                    chatTitle={activeChat.title}
+                                    currentUserEmail={currentUserEmail}
+                                />
+                            ) : (
+                                <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+                                    Select a conversation to start messaging
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
