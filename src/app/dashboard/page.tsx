@@ -27,7 +27,10 @@ export default async function DashboardPage() {
         deadline: p.quote ? p.quote.deadline : 'TBD',
         deliveryMessage: p.deliveryMessage,
         files: p.files,
-        quote: p.quote // Keep the full object for detailed review
+        quote: p.quote, // Keep the full object for detailed review
+        lastMessageAt: p.lastMessageAt,
+        lastMessageSender: p.lastMessageSender,
+        description: p.description,
     }));
 
     // Normalize Payments

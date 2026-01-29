@@ -145,6 +145,16 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
 
     // --- SUB-COMPONENTS ---
 
+    // Check if there are unread messages (from admin to client)
+    const hasUnreadMessages = () => {
+        return (initialProjects || []).some(p => {
+            const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${p.id}`);
+            // Check if there's a new message from someone other than the current user
+            return p.lastMessageAt && p.lastMessageSender && p.lastMessageSender !== userProfile.email &&
+                (!meta || meta.lastReadAt < p.lastMessageAt);
+        });
+    };
+
     const Sidebar = () => (
         <div className={styles.sidebar}>
             <div className={styles.sidebarHeader}>
@@ -161,10 +171,17 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                     <span>💳</span> Payments
                 </div>
                 <div className={`${styles.navItem} ${activeView === 'messages' ? styles.navActive : ''}`} onClick={() => setActiveView('messages')}>
-                    <span>💬</span> Messages {initialProjects.some(p => {
-                        const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${p.id}`);
-                        return p.lastMessageAt && (!meta || meta.lastReadAt < p.lastMessageAt);
-                    }) ? <span className={styles.navBadge}>●</span> : null}
+                    <span>💬</span> Messages
+                    {hasUnreadMessages() && (
+                        <span style={{
+                            marginLeft: '8px',
+                            width: '10px',
+                            height: '10px',
+                            background: '#ef4444',
+                            borderRadius: '50%',
+                            display: 'inline-block'
+                        }}></span>
+                    )}
                 </div>
                 <div className={`${styles.navItem} ${activeView === 'profile' ? styles.navActive : ''}`} onClick={() => setActiveView('profile')}>
                     <span>👤</span> Profile
@@ -348,13 +365,25 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
     const MessagesView = () => {
         const [selectedChatId, setSelectedChatId] = useState('general');
 
+        // Helper to check if a chat has unread messages from developer
+        const hasUnreadFromDeveloper = (chatId: string) => {
+            if (chatId === 'general') return false; // Support chat handling could be added later
+            const project = (initialProjects || []).find((p: any) => p.id === chatId);
+            if (!project || !project.lastMessageAt) return false;
+            // Only show unread if the last message was from someone else (developer)
+            if (project.lastMessageSender === userProfile.email) return false;
+            const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${chatId}`);
+            return !meta || meta.lastReadAt < project.lastMessageAt;
+        };
+
         // Combine "General Support" with user projects for the chat list
         const chatList = [
-            { id: 'general', title: 'General Support', status: 'Online' },
+            { id: 'general', title: 'General Support', status: 'Online', hasUnread: false },
             ...(myProjects || []).map(p => ({
                 id: p.id,
                 title: p.title || 'Untitled Project',
-                status: p.status
+                status: p.status,
+                hasUnread: hasUnreadFromDeveloper(p.id)
             }))
         ];
 
@@ -379,9 +408,22 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                                     className={`${styles.chatSidebarItem} ${selectedChatId === chat.id ? styles.chatSidebarItemActive : ''}`}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ color: '#1e293b', fontWeight: 500, fontSize: '0.9rem', marginBottom: '4px' }}>{chat.title}</div>
-                                        {chat.id !== 'general' && (initialProjects.find(p => p.id === chat.id)?.lastMessageAt > (initialChatMetas.find(m => m.SK === `CHATMETA#${chat.id}`)?.lastReadAt || '')) && (
-                                            <span style={{ width: '8px', height: '8px', background: '#3b82f6', borderRadius: '50%' }}></span>
+                                        <div style={{
+                                            color: '#1e293b',
+                                            fontWeight: chat.hasUnread ? 700 : 500,
+                                            fontSize: '0.9rem',
+                                            marginBottom: '4px'
+                                        }}>
+                                            {chat.title}
+                                        </div>
+                                        {chat.hasUnread && (
+                                            <span style={{
+                                                width: '10px',
+                                                height: '10px',
+                                                background: '#ef4444',
+                                                borderRadius: '50%',
+                                                flexShrink: 0
+                                            }}></span>
                                         )}
                                     </div>
                                     <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.id === 'general' ? 'Support' : chat.status}</div>
@@ -394,7 +436,7 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                     <div className={styles.chatContent}>
                         <div className={styles.chatContentHeader}>
                             <span style={{ fontWeight: 600, color: '#0f172a' }}>{activeChat.title}</span>
-                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>ID: {activeChat.id}</span>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Chat with Developer</span>
                         </div>
                         <div className={styles.chatContentBody}>
                             <ChatInterface

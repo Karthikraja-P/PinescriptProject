@@ -129,6 +129,23 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
         alert(`Project ${projectToDeliver.id} marked as Completed!`);
     };
 
+    // Check if there are unread messages (from clients to admin)
+    const hasUnreadMessages = () => {
+        // Check support chats
+        const unreadSupport = initialSupportChats.some(c => {
+            const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${c.id}`);
+            return c.lastMessageAt && c.lastMessageSender !== currentUserEmail && (!meta || meta.lastReadAt < c.lastMessageAt);
+        });
+
+        // Check project chats
+        const unreadProjects = initialEnquiries.some(e => {
+            const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${e.id}`);
+            return e.lastMessageAt && e.lastMessageSender !== currentUserEmail && (!meta || meta.lastReadAt < e.lastMessageAt);
+        });
+
+        return unreadSupport || unreadProjects;
+    };
+
     // --- SUB-COMPONENTS ---
     const Sidebar = () => (
         <div className={styles.sidebar}>
@@ -144,10 +161,11 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                     { id: 'payments', label: 'Payments', icon: '💰' },
                     { id: 'clients', label: 'Clients', icon: '👥' },
                     {
-                        id: 'messages', label: 'Messages', icon: '💬', badge: initialSupportChats.some(c => {
-                            const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${c.id}`);
-                            return c.lastMessageAt && (!meta || meta.lastReadAt < c.lastMessageAt);
-                        }) ? '●' : null
+                        id: 'messages',
+                        label: 'Messages',
+                        icon: '💬',
+                        badge: hasUnreadMessages() ? '●' : null,
+                        badgeColor: hasUnreadMessages() ? '#ef4444' : undefined // Red color for unread
                     },
                     { id: 'reports', label: 'Reports', icon: '📈' },
                     { id: 'settings', label: 'Settings', icon: '⚙️' },
@@ -167,7 +185,10 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                             <span>{item.icon}</span> {item.label}
                         </div>
                         {item.badge ? (
-                            <span className={styles.navBadge}>
+                            <span
+                                className={styles.navBadge}
+                                style={(item as any).badgeColor ? { backgroundColor: (item as any).badgeColor, color: 'white' } : {}}
+                            >
                                 {item.badge}
                             </span>
                         ) : null}
@@ -330,17 +351,44 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
     // VIEW: Messages with Project Context
     const MessagesView = () => {
         // Admin sees all projects that are not 'New' (i.e., real interactions)
+        // Also include support chats
         const chatList = [
             // Include General Support Chats from initialSupportChats
-            ...(initialSupportChats || []).map(c => ({
-                id: c.id,
-                title: `${c.client} - Support`
-            })),
-            ...enquiries.filter(e => e.status !== 'New' && e.status !== 'SUBMITTED').map(e => ({
-                id: e.id,
-                title: `${e.client || e.userEmail} - ${e.type}`
-            }))
+            ...(initialSupportChats || []).map(c => {
+                const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${c.id}`);
+                const hasUnread = c.lastMessageAt && c.lastMessageSender !== currentUserEmail &&
+                    (!meta || meta.lastReadAt < c.lastMessageAt);
+                return {
+                    id: c.id,
+                    title: c.clientName || c.client || 'Client',
+                    subtitle: 'Support Chat',
+                    userEmail: c.userEmail,
+                    hasUnread,
+                    lastMessageAt: c.lastMessageAt
+                };
+            }),
+            // Include projects with ongoing conversations
+            ...enquiries.filter(e => e.status !== 'New' && e.status !== 'SUBMITTED').map(e => {
+                const meta = initialChatMetas.find((m: any) => m.SK === `CHATMETA#${e.id}`);
+                const hasUnread = e.lastMessageAt && e.lastMessageSender !== currentUserEmail &&
+                    (!meta || meta.lastReadAt < e.lastMessageAt);
+                return {
+                    id: e.id,
+                    title: e.clientName || e.client || e.userEmail?.split('@')[0] || 'Client',
+                    subtitle: e.type || 'Project',
+                    userEmail: e.userEmail,
+                    hasUnread,
+                    lastMessageAt: e.lastMessageAt
+                };
+            })
         ];
+
+        // Sort by last message time (most recent first)
+        chatList.sort((a, b) => {
+            if (!a.lastMessageAt) return 1;
+            if (!b.lastMessageAt) return -1;
+            return b.lastMessageAt.localeCompare(a.lastMessageAt);
+        });
 
         // Initialize with the first valid chat, not 'general'
         const [selectedChatId, setSelectedChatId] = useState(chatList.length > 0 ? chatList[0].id : '');
@@ -372,7 +420,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                     {/* Chat Sidebar */}
                     <div className={styles.chatSidebar}>
                         <div className={styles.chatSidebarHeader}>
-                            Recent Conversations
+                            Clients ({chatList.length})
                         </div>
                         <div className={styles.chatSidebarList}>
                             {chatList.map(chat => (
@@ -382,10 +430,25 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                     className={`${styles.chatSidebarItem} ${selectedChatId === chat.id ? styles.chatSidebarItemActive : ''}`}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ color: '#1e293b', fontWeight: 500, fontSize: '0.9rem', marginBottom: '2px' }}>{chat.title}</div>
-                                        {/* Simplified unread check for admin */}
+                                        <div style={{
+                                            color: '#1e293b',
+                                            fontWeight: chat.hasUnread ? 700 : 500,
+                                            fontSize: '0.9rem',
+                                            marginBottom: '2px'
+                                        }}>
+                                            {chat.title}
+                                        </div>
+                                        {chat.hasUnread && (
+                                            <span style={{
+                                                width: '10px',
+                                                height: '10px',
+                                                background: '#ef4444',
+                                                borderRadius: '50%',
+                                                flexShrink: 0
+                                            }}></span>
+                                        )}
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.id}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.subtitle}</div>
                                 </div>
                             ))}
                         </div>

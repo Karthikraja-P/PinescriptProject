@@ -22,6 +22,7 @@ export interface MessageData {
     content: string;
     attachments?: any[];
     createdAt?: string;
+    status?: 'sent' | 'delivered' | 'read'; // Message status for tick indicators
 }
 
 export interface ProjectData {
@@ -180,6 +181,24 @@ export async function getAllProjectsAdmin() {
 }
 
 /**
+ * Get a project by its ID (admin use - scans the GSI)
+ */
+export async function getProjectByIdAdmin(projectId: string) {
+    const result = await db.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: "GSI1",
+        KeyConditionExpression: "GSI1PK = :pk",
+        FilterExpression: "id = :id",
+        ExpressionAttributeValues: {
+            ":pk": "ADMIN#ALL_PROJECTS",
+            ":id": projectId
+        }
+    }));
+
+    return result.Items?.[0] || null;
+}
+
+/**
  * Record a payment and update project status
  */
 export async function recordPayment(paymentData: {
@@ -256,7 +275,6 @@ export async function getUserPayments(userEmail: string) {
 
 export async function saveMessage(projectId: string, message: MessageData, parentUserEmail?: string) {
     const timestamp = new Date().toISOString();
-    // ...
     const sk = `MSG#${timestamp}`;
 
     const item = {
@@ -265,6 +283,7 @@ export async function saveMessage(projectId: string, message: MessageData, paren
         ...message,
         id: message.id || uuidv4(),
         createdAt: timestamp,
+        status: 'sent' as const, // Initial status is 'sent'
     };
 
     await db.send(new PutCommand({
@@ -272,24 +291,127 @@ export async function saveMessage(projectId: string, message: MessageData, paren
         Item: item
     }));
 
-    // Update parent item timestamp for unread tracking/sorting
-    if (parentUserEmail) {
-        try {
-            const parentPK = `USER#${parentUserEmail}`;
-            const parentSK = projectId.startsWith('SUPPORT_') ? `SUPPORT#${parentUserEmail}` : `PROJECT#${projectId}`;
+    // Update parent project/support record for unread tracking/sorting
+    // For projects, find the project and update it
+    // For support chats, update the support record
+    try {
+        if (projectId.startsWith('SUPPORT_')) {
+            // Support chat - update the support record
+            const clientEmail = projectId.replace('SUPPORT_', '');
+            await db.send(new UpdateCommand({
+                TableName: TABLE_NAME,
+                Key: { PK: `USER#${clientEmail}`, SK: `SUPPORT#${clientEmail}` },
+                UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t, lastMessageSender = :s",
+                ExpressionAttributeValues: { ":t": timestamp, ":s": message.sender }
+            }));
+        } else if (parentUserEmail) {
+            // Project chat - update the user's project record
+            const parentPK = parentUserEmail.startsWith('USER#') ? parentUserEmail : `USER#${parentUserEmail}`;
+            const parentSK = `PROJECT#${projectId}`;
 
             await db.send(new UpdateCommand({
                 TableName: TABLE_NAME,
                 Key: { PK: parentPK, SK: parentSK },
-                UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t",
-                ExpressionAttributeValues: { ":t": timestamp }
+                UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t, lastMessageSender = :s",
+                ExpressionAttributeValues: { ":t": timestamp, ":s": message.sender }
             }));
-        } catch (e) {
-            console.error("Failed to update parent timestamp", e);
+        } else {
+            // Try to find the project owner from the project ID using GSI
+            const project = await getProjectByIdAdmin(projectId);
+            if (project && project.PK) {
+                await db.send(new UpdateCommand({
+                    TableName: TABLE_NAME,
+                    Key: { PK: project.PK, SK: `PROJECT#${projectId}` },
+                    UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t, lastMessageSender = :s",
+                    ExpressionAttributeValues: { ":t": timestamp, ":s": message.sender }
+                }));
+            }
         }
+    } catch (e) {
+        console.error("Failed to update parent timestamp", e);
     }
 
     return item;
+}
+
+/**
+ * Update message status to delivered or read
+ */
+export async function updateMessageStatus(projectId: string, messageSK: string, status: 'delivered' | 'read') {
+    try {
+        await db.send(new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: {
+                PK: `PROJECT#${projectId}`,
+                SK: messageSK
+            },
+            UpdateExpression: "SET #status = :s",
+            ExpressionAttributeNames: { "#status": "status" },
+            ExpressionAttributeValues: { ":s": status }
+        }));
+        return { success: true };
+    } catch (e) {
+        console.error("Failed to update message status", e);
+        return { error: "Failed to update message status" };
+    }
+}
+
+/**
+ * Mark all messages in a chat as read by the recipient
+ */
+export async function markMessagesAsRead(projectId: string, readerEmail: string) {
+    try {
+        // Fetch all messages in this chat
+        const messages = await getProjectMessages(projectId);
+
+        // Update messages that were sent by someone else and not yet read
+        for (const msg of messages) {
+            if (msg.sender !== readerEmail && msg.status !== 'read') {
+                await db.send(new UpdateCommand({
+                    TableName: TABLE_NAME,
+                    Key: {
+                        PK: `PROJECT#${projectId}`,
+                        SK: msg.SK
+                    },
+                    UpdateExpression: "SET #status = :s",
+                    ExpressionAttributeNames: { "#status": "status" },
+                    ExpressionAttributeValues: { ":s": "read" }
+                }));
+            }
+        }
+        return { success: true };
+    } catch (e) {
+        console.error("Failed to mark messages as read", e);
+        return { error: "Failed to mark messages as read" };
+    }
+}
+
+/**
+ * Mark messages as delivered when recipient opens the chat
+ */
+export async function markMessagesAsDelivered(projectId: string, recipientEmail: string) {
+    try {
+        const messages = await getProjectMessages(projectId);
+
+        for (const msg of messages) {
+            if (msg.sender !== recipientEmail && msg.status === 'sent') {
+                await db.send(new UpdateCommand({
+                    TableName: TABLE_NAME,
+                    Key: {
+                        PK: `PROJECT#${projectId}`,
+                        SK: msg.SK
+                    },
+                    UpdateExpression: "SET #status = :s",
+                    ExpressionAttributeNames: { "#status": "status" },
+                    ExpressionAttributeValues: { ":s": "delivered" }
+                }));
+            }
+        }
+        return { success: true };
+    } catch (e) {
+        console.error("Failed to mark messages as delivered", e);
+        return { error: "Failed to mark messages as delivered" };
+    }
 }
 
 export async function updateLastRead(userEmail: string, chatId: string) {
