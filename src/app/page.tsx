@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './landing.module.css';
-// const styles: any = {};
+import Footer from '@/components/Footer';
 
 export default function LandingPage() {
     const router = useRouter();
@@ -157,34 +157,7 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className={styles.footer}>
-                <div className={styles.footerContent}>
-                    <div>
-                        <div className={styles.footerLogo}>PineScript<span style={{ color: '#3b82f6' }}>Elite</span></div>
-                        <p style={{ color: '#94a3b8', maxWidth: '300px' }}>
-                            Professional coding services for serious traders.
-                            Based in New York, serving clients worldwide.
-                        </p>
-                    </div>
-                    <div className={styles.footerLinks}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <span style={{ fontWeight: '600', color: 'white' }}>Platform</span>
-                            <span onClick={() => scrollToSection('home')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Home</span>
-                            <span onClick={() => scrollToSection('services')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Services</span>
-                            <Link href="/auth?mode=login" className={styles.footerLink}>Login</Link>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <span style={{ fontWeight: '600', color: 'white' }}>Legal</span>
-                            <span onClick={() => scrollToSection('policies')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Terms of Service</span>
-                            <span onClick={() => scrollToSection('policies')} style={{ cursor: 'pointer', color: '#94a3b8' }}>Privacy Policy</span>
-                        </div>
-                    </div>
-                </div>
-                <div style={{ borderTop: '1px solid #1e293b', marginTop: '40px', paddingTop: '20px', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-                    &copy; 2026 PineScript Elite. All rights reserved.
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

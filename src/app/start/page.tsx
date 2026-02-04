@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { submitProjectRequest } from '../actions';
-// ... prev imports
+import Footer from '@/components/Footer';
 
 export default function StartProject() {
     const [step, setStep] = useState(1);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [attachments, setAttachments] = useState<File[]>([]);
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        telegram: '',
+        title: '',
         type: 'strategy', // strategy | indicator | modification
         budget: '',
         description: '',
@@ -22,18 +23,49 @@ export default function StartProject() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            // Enforce limit of 200KB as per BACKEND_PLAN
+            const validFiles = newFiles.filter(f => f.size <= 200 * 1024);
+            if (validFiles.length < newFiles.length) {
+                alert("Some files were too large and were skipped (Max 200KB).");
+            }
+            setAttachments(prev => [...prev, ...validFiles]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
     const nextStep = async () => {
         if (step === 2) {
-            const fd = new FormData();
-            fd.append('type', formData.type);
-            fd.append('budget', formData.budget);
-            fd.append('description', formData.description);
+            setIsSubmitting(true);
+            try {
+                const fd = new FormData();
+                fd.append('title', formData.title);
+                fd.append('type', formData.type);
+                fd.append('budget', formData.budget);
+                fd.append('description', formData.description);
 
-            const res = await submitProjectRequest(null, fd);
-            if (res?.error) {
-                alert(res.error);
+                attachments.forEach(file => {
+                    fd.append('attachments', file);
+                });
+
+                const res = await submitProjectRequest(null, fd);
+                if (res?.error) {
+                    alert(res.error);
+                    setIsSubmitting(false);
+                    return;
+                }
+            } catch (e) {
+                console.error(e);
+                alert("An error occurred during submission.");
+                setIsSubmitting(false);
                 return;
             }
+            setIsSubmitting(false);
         }
         setStep(s => Math.min(s + 1, 3));
     };
@@ -52,7 +84,6 @@ export default function StartProject() {
                     </div>
 
                     {/* Stepper */}
-                    {/* Stepper */}
                     <div className={styles.stepper}>
                         {['⚙️', '📝'].map((icon, index) => {
                             const stepNum = index + 1;
@@ -67,9 +98,20 @@ export default function StartProject() {
                         })}
                     </div>
 
-                    {/* Step 1: Details (Formerly Step 2) */}
+                    {/* Step 1: Details */}
                     {step === 1 && (
                         <div className="animate-fade-in">
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Project Title (Optional)</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    placeholder="e.g. Trend Following Strategy"
+                                    className={styles.input}
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                />
+                            </div>
                             <div className={styles.formGroup}>
                                 <label className={styles.label}>Project Type</label>
                                 <select
@@ -101,7 +143,7 @@ export default function StartProject() {
                         </div>
                     )}
 
-                    {/* Step 2: Description (Formerly Step 3) */}
+                    {/* Step 2: Description */}
                     {step === 2 && (
                         <div className="animate-fade-in">
                             <div className={styles.formGroup}>
@@ -115,19 +157,42 @@ export default function StartProject() {
                                 ></textarea>
                             </div>
                             <div className={styles.formGroup}>
-                                <label className={styles.label}>Attachments</label>
-                                <div className={styles.dropzone}>
+                                <label className={styles.label}>Attachments (Screenshots/PDFs)</label>
+                                <div
+                                    className={styles.dropzone}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <input
+                                        type="file"
+                                        multiple
+                                        hidden
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept=".pdf,.png,.jpg,.jpeg,.txt"
+                                    />
                                     <div className={styles.dropzoneIcon}>📁</div>
                                     <p style={{ color: '#888', fontSize: '0.9rem' }}>
-                                        Drag & drop screenshots or PDFs here<br />
-                                        <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>(Mockup functionality)</span>
+                                        Click to upload or drag & drop<br />
+                                        <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>(Max 200KB per file)</span>
                                     </p>
                                 </div>
+
+                                {attachments.length > 0 && (
+                                    <div className={styles.fileList}>
+                                        {attachments.map((file, i) => (
+                                            <div key={i} className={styles.fileItem}>
+                                                <span>{file.name}</span>
+                                                <button onClick={(e) => { e.stopPropagation(); removeFile(i); }}>✕</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {/* Step 3: Success (Formerly Step 4) */}
+                    {/* Step 3: Success */}
                     {step === 3 && (
                         <div style={{ textAlign: 'center', padding: '20px 0' }} className="animate-fade-in">
                             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🎉</div>
@@ -145,17 +210,18 @@ export default function StartProject() {
                     {step < 3 && (
                         <div className={styles.actions}>
                             {step > 1 ? (
-                                <button onClick={prevStep} className={styles.btnBack}>Back</button>
+                                <button onClick={prevStep} className={styles.btnBack} disabled={isSubmitting}>Back</button>
                             ) : <div></div>}
 
-                            <button onClick={nextStep} className="btn-primary">
-                                {step === 2 ? 'Submit Request' : 'Next Step'}
+                            <button onClick={nextStep} className="btn-primary" disabled={isSubmitting}>
+                                {isSubmitting ? 'Submitting...' : (step === 2 ? 'Submit Request' : 'Next Step')}
                             </button>
                         </div>
                     )}
 
                 </div>
             </div >
+            <Footer />
         </main >
     );
 }

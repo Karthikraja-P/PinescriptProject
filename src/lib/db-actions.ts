@@ -1,5 +1,5 @@
 import { db, TABLE_NAME } from "./dynamodb";
-import { PutCommand, QueryCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, GetCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UserData {
@@ -33,6 +33,7 @@ export interface ProjectData {
     budget: string;
     description: string;
     status: string;
+    attachments?: { name: string; type: string; data: string }[];
 }
 
 /**
@@ -246,7 +247,7 @@ export async function recordPayment(paymentData: {
                 "#status": "status"
             },
             ExpressionAttributeValues: {
-                ":s": "IN_PROGRESS",
+                ":s": "In Progress",
                 ":t": timestamp
             }
         }));
@@ -533,6 +534,30 @@ export async function getAllContactMessages() {
             ":pk": "ADMIN#CONTACT_MESSAGES"
         },
         ScanIndexForward: false // Newest first
+    }));
+
+    return result.Items || [];
+}
+
+export async function getAllUsersAdmin() {
+    const result = await db.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: "SK = :sk",
+        ExpressionAttributeValues: {
+            ":sk": "PROFILE"
+        }
+    }));
+
+    return result.Items || [];
+}
+
+export async function getAllPaymentsAdmin() {
+    const result = await db.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: "begins_with(SK, :sk)",
+        ExpressionAttributeValues: {
+            ":sk": "PAYMENT#"
+        }
     }));
 
     return result.Items || [];

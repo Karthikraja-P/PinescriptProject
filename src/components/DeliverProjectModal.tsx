@@ -9,12 +9,13 @@ interface DeliverProjectModalProps {
         type: string;
     };
     onClose: () => void;
-    onDeliver: (files: string[], message: string) => void;
+    onDeliver: (files: { name: string; data: string }[], message: string) => void;
 }
 
 export default function DeliverProjectModal({ project, onClose, onDeliver }: DeliverProjectModalProps) {
     const [files, setFiles] = useState<File[]>([]);
     const [message, setMessage] = useState('');
+    const [isProcessing, setIsProcessing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,11 +24,29 @@ export default function DeliverProjectModal({ project, onClose, onDeliver }: Del
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate file names for the mock delivery
-        const fileNames = files.map(f => f.name);
-        onDeliver(fileNames.length ? fileNames : ['strategy_v1.pine'], message);
+        setIsProcessing(true);
+
+        try {
+            const processedFiles = await Promise.all(files.map(async (file) => {
+                const reader = new FileReader();
+                return new Promise<{ name: string; data: string }>((resolve) => {
+                    reader.onload = () => {
+                        const base64 = (reader.result as string).split(',')[1];
+                        resolve({ name: file.name, data: base64 });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }));
+
+            onDeliver(processedFiles, message);
+        } catch (error) {
+            console.error(error);
+            alert("Error processing files.");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -106,12 +125,13 @@ export default function DeliverProjectModal({ project, onClose, onDeliver }: Del
                         </button>
                         <button
                             type="submit"
+                            disabled={isProcessing}
                             style={{
-                                padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#16a34a',
-                                color: 'white', fontWeight: 500, cursor: 'pointer' // Green for delivery
+                                padding: '10px 20px', borderRadius: '8px', border: 'none', background: isProcessing ? '#94a3b8' : '#16a34a',
+                                color: 'white', fontWeight: 500, cursor: isProcessing ? 'not-allowed' : 'pointer' // Green for delivery
                             }}
                         >
-                            Deliver & Complete
+                            {isProcessing ? 'Processing...' : 'Deliver & Complete'}
                         </button>
                     </div>
                 </form>

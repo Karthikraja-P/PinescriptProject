@@ -30,7 +30,7 @@ export async function submitQuote(quoteData: {
                 "#status": "status"
             },
             ExpressionAttributeValues: {
-                ":s": "QUOTED", // QUOTED status means user needs to pay/accept
+                ":s": "Quote Sent", // QUOTED status means user needs to pay/accept
                 ":q": {
                     amount: quoteData.amount,
                     currency: quoteData.currency,
@@ -65,7 +65,7 @@ export async function deliverProjectAction(data: {
     projectId: string;
     userId: string; // or PK
     userEmail: string;
-    files: string[];
+    files: { name: string; data: string }[];
     message: string;
 }) {
     const pk = data.userId.startsWith('USER#') ? data.userId : `USER#${data.userEmail}`;
@@ -95,5 +95,43 @@ export async function deliverProjectAction(data: {
     } catch (e) {
         console.error("Delivery error:", e);
         return { error: "Failed to deliver project" };
+    }
+}
+
+export async function rejectEnquiryAction(data: {
+    projectId: string;
+    userId: string;
+    userEmail: string;
+    reason?: string;
+}) {
+    const pk = data.userId.startsWith('USER#') ? data.userId : `USER#${data.userEmail}`;
+    const sk = `PROJECT#${data.projectId}`;
+
+    try {
+        await db.send(new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: { PK: pk, SK: sk },
+            UpdateExpression: "set #status = :s, updatedAt = :t",
+            ExpressionAttributeNames: {
+                "#status": "status"
+            },
+            ExpressionAttributeValues: {
+                ":s": "Declined",
+                ":t": new Date().toISOString()
+            }
+        }));
+
+        // Send Email Notification
+        const { sendRejectionNotification } = await import("@/lib/email");
+        await sendRejectionNotification({
+            email: data.userEmail,
+            projectTitle: "Project " + data.projectId.substring(0, 8),
+            reason: data.reason
+        });
+
+        return { success: true };
+    } catch (e) {
+        console.error("Rejection error:", e);
+        return { error: "Failed to reject project" };
     }
 }

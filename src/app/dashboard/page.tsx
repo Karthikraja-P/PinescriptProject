@@ -31,6 +31,7 @@ export default async function DashboardPage() {
         lastMessageAt: p.lastMessageAt,
         lastMessageSender: p.lastMessageSender,
         description: p.description,
+        attachments: p.attachments,
     }));
 
     // Normalize Payments

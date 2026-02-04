@@ -118,3 +118,17 @@ export async function sendMessageNotification(data: { toEmail: string, fromName:
    `;
     return sendEmail({ to: data.toEmail, subject, html });
 }
+
+export async function sendRejectionNotification(data: { email: string, projectTitle: string, reason?: string }) {
+    const subject = `Update on your project enquiry: ${data.projectTitle}`;
+    const html = `
+        <h2>Project Enquiry Update</h2>
+        <p>Thank you for your interest in PineScript Elite.</p>
+        <p>Unfortunately, we are unable to proceed with your project enquiry: <strong>${data.projectTitle}</strong> at this time.</p>
+        ${data.reason ? `<p><strong>Reason:</strong> ${data.reason}</p>` : ''}
+        <br/>
+        <p>We appreciate your understanding.</p>
+        <p>Best regards,<br/>The PineScript Elite Team</p>
+    `;
+    return sendEmail({ to: data.email, subject, html });
+}

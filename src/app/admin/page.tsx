@@ -18,10 +18,12 @@ export default async function AdminPage() {
     }
 
     const projects = await getAllProjectsAdmin();
-    const { getAdminSupportChats, getAllContactMessages, getChatMetas } = await import("@/lib/db-actions");
+    const { getAdminSupportChats, getAllContactMessages, getChatMetas, getAllUsersAdmin, getAllPaymentsAdmin } = await import("@/lib/db-actions");
     const supportChats = await getAdminSupportChats();
     const contactMessages = await getAllContactMessages();
     const chatMetas = await getChatMetas(session.user.email);
+    const users = await getAllUsersAdmin();
+    const payments = await getAllPaymentsAdmin();
 
     // Map DynamoDB items to the structure Admin Dashboard expects
     const formattedEnquiries = projects.map((p: any) => ({
@@ -37,6 +39,7 @@ export default async function AdminPage() {
         lastMessageAt: p.lastMessageAt,
         lastMessageSender: p.lastMessageSender,
         description: p.description,
+        attachments: p.attachments,
     }));
 
     const formattedSupportChats = supportChats.map((c: any) => ({
@@ -56,6 +59,8 @@ export default async function AdminPage() {
             initialSupportChats={formattedSupportChats}
             initialContactMessages={contactMessages}
             initialChatMetas={chatMetas}
+            initialUsers={users}
+            initialPayments={payments}
             currentUserEmail={session?.user?.email || ""}
         />
     );

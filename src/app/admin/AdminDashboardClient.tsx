@@ -12,6 +12,8 @@ interface AdminDashboardClientProps {
     initialSupportChats: any[];
     initialContactMessages: any[];
     initialChatMetas: any[];
+    initialUsers?: any[];
+    initialPayments?: any[];
     currentUserEmail: string;
 }
 
@@ -23,7 +25,9 @@ interface Stats {
     completed: number;
 }
 
-export default function AdminDashboard({ initialEnquiries, initialSupportChats, initialContactMessages, initialChatMetas, currentUserEmail }: AdminDashboardClientProps) {
+export default function AdminDashboard({ initialEnquiries, initialSupportChats, initialContactMessages, initialChatMetas, initialUsers = [], initialPayments = [], currentUserEmail }: AdminDashboardClientProps) {
+    const [users, setUsers] = useState(initialUsers);
+    const [payments, setPayments] = useState(initialPayments);
     const [activeView, setActiveView] = useState('dashboard');
     const [notifications, setNotifications] = useState(0);
     const [enquiries, setEnquiries] = useState(initialEnquiries);
@@ -44,7 +48,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
         let completed = 0;
 
         initialEnquiries.forEach(e => {
-            if (e.status === 'Completed' || e.status === 'IN_PROGRESS') {
+            if (e.status === 'Completed' || e.status === 'In Progress') {
                 // Approximate revenue parsing
                 if (e.quote?.amount) {
                     revenue += parseFloat(e.quote.amount) || 0;
@@ -52,7 +56,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
             }
             if (e.status === 'In Progress') active++;
             if (e.status === 'Completed') completed++;
-            if (e.status === 'QUOTED') pending++;
+            if (e.status === 'Quote Sent') pending++;
         });
 
         setStats({
@@ -100,7 +104,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
         alert(`Quote sent successfully!`);
     };
 
-    const handleDeliverProject = async (files: string[], message: string) => {
+    const handleDeliverProject = async (files: { name: string; data: string }[], message: string) => {
         if (!projectToDeliver) return;
 
         // 1. Call Server Action
@@ -129,6 +133,35 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
         alert(`Project ${projectToDeliver.id} marked as Completed!`);
     };
 
+    const handleRejectEnquiry = async (enquiry: any) => {
+        if (!window.confirm("Are you sure you want to reject this project enquiry?")) return;
+
+        const reason = window.prompt("Reason for rejection (Optional):") || undefined;
+
+        // 1. Call Server Action
+        const { rejectEnquiryAction } = await import("@/app/admin-actions");
+        const result = await rejectEnquiryAction({
+            projectId: enquiry.id,
+            userId: enquiry.userId || "",
+            userEmail: enquiry.userEmail || "",
+            reason
+        });
+
+        if (result.error) {
+            alert("Failed to reject enquiry: " + result.error);
+            return;
+        }
+
+        // 2. Update Local State (Optimistic)
+        const updatedEnquiries = enquiries.map(e =>
+            e.id === enquiry.id ? { ...e, status: 'Declined' } : e
+        );
+        setEnquiries(updatedEnquiries);
+        setViewingEnquiry(null);
+
+        alert(`Project ${enquiry.id} rejected.`);
+    };
+
     // Check if there are unread messages (from clients to admin)
     const hasUnreadMessages = () => {
         // Check support chats
@@ -155,7 +188,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
             <nav className={styles.nav}>
                 {[
                     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                    { id: 'enquiries', label: 'Enquiries', icon: '📩', badge: initialEnquiries.filter(e => e.status === 'New' || e.status === 'SUBMITTED').length },
+                    { id: 'enquiries', label: 'Enquiries', icon: '📩', badge: initialEnquiries.filter(e => e.status === 'New').length },
                     { id: 'contact', label: 'Contacts', icon: '📇', badge: initialContactMessages.length },
                     { id: 'projects', label: 'Projects', icon: '🚀' },
                     { id: 'payments', label: 'Payments', icon: '💰' },
@@ -213,7 +246,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
             <div className={styles.statsGrid}>
                 <div className={styles.statCard}>
                     <div className={styles.statTitle}>New Enquiries</div>
-                    <div className={styles.statValue}>{enquiries.filter(e => e.status === 'New' || e.status === 'SUBMITTED').length}</div>
+                    <div className={styles.statValue}>{enquiries.filter(e => e.status === 'New').length}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={styles.statTitle}>Active Projects</div>
@@ -275,7 +308,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                     <td>{e.id}</td><td>{e.client}</td><td>{e.type}</td><td>{e.date}</td>
                                     <td><span className={styles.badge}>{e.status}</span></td>
                                     <td>
-                                        {e.status === 'New' || e.status === 'SUBMITTED' ? (
+                                        {e.status === 'New' ? (
                                             <button
                                                 className={`${styles.btn} ${styles.btnOutline}`}
                                                 style={{ marginRight: '8px' }}
@@ -293,7 +326,12 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                         >
                                             Open
                                         </button>
-                                        <button className={`${styles.btn} ${styles.btnOutline}`}>Reject</button>
+                                        <button
+                                            className={`${styles.btn} ${styles.btnOutline}`}
+                                            onClick={() => handleRejectEnquiry(e)}
+                                        >
+                                            Reject
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -607,8 +645,40 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                         </div>
                     </div>
 
+                    {enquiry.attachments && enquiry.attachments.length > 0 && (
+                        <div style={{ marginBottom: '20px' }}>
+                            <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Attachments</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {enquiry.attachments.map((file: any, i: number) => (
+                                    <div
+                                        key={i}
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = `data:${file.type};base64,${file.data}`;
+                                            link.download = file.name;
+                                            link.click();
+                                        }}
+                                        style={{
+                                            background: '#f1f5f9',
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8rem',
+                                            border: '1px solid #e2e8f0',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        📎 {file.name}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-                        {enquiry.status === 'New' || enquiry.status === 'SUBMITTED' ? (
+                        {enquiry.status === 'New' ? (
                             <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => { setSelectedEnquiry(enquiry); onClose(); }}>
                                 Send Quote
                             </button>
@@ -616,10 +686,86 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                         <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => { setActiveView('messages'); setSelectedEnquiry(null); onClose(); }}>
                             Open Chat
                         </button>
+                        <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => handleRejectEnquiry(enquiry)}>Reject</button>
                     </div>
                 </div>
             </div>
         </div>
+    );
+
+    // VIEW: Clients
+    const ClientsView = () => (
+        <>
+            <div className={styles.header}><h1 className={styles.title}>Client Management</h1></div>
+            <div className={styles.card}>
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>TV Username</th>
+                            <th>Joined Date</th>
+                            <th>Projects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.length === 0 ? (
+                            <tr><td colSpan={5} className={styles.noData}>No clients found.</td></tr>
+                        ) : (
+                            users.map((u: any, i: number) => {
+                                const userProjects = enquiries.filter(e => e.userEmail === u.email);
+                                return (
+                                    <tr key={i}>
+                                        <td style={{ fontWeight: 600 }}>{u.name || 'N/A'}</td>
+                                        <td>{u.email}</td>
+                                        <td>{u.tvUsername || 'Not linked'}</td>
+                                        <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                        <td>{userProjects.length}</td>
+                                    </tr>
+                                );
+                            })
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </>
+    );
+
+    // VIEW: Payments
+    const PaymentsView = () => (
+        <>
+            <div className={styles.header}><h1 className={styles.title}>Payment History</h1></div>
+            <div className={styles.card}>
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Project ID</th>
+                            <th>Client</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {payments.length === 0 ? (
+                            <tr><td colSpan={6} className={styles.noData}>No payments recorded.</td></tr>
+                        ) : (
+                            payments.map((p: any, i: number) => (
+                                <tr key={i}>
+                                    <td>{p.orderId}</td>
+                                    <td>{p.projectId}</td>
+                                    <td>{p.userEmail}</td>
+                                    <td style={{ fontWeight: 600, color: '#16a34a' }}>${p.amount} {p.currency}</td>
+                                    <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                    <td><span className={`${styles.badge} ${styles.statusCompleted}`}>{p.status}</span></td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </>
     );
 
     // Placeholder for simple views
@@ -639,8 +785,8 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                 {activeView === 'dashboard' && <DashboardView />}
                 {activeView === 'enquiries' && <EnquiriesView />}
                 {activeView === 'projects' && <ProjectsView />}
-                {activeView === 'payments' && <PlaceholderView title="Payment Transactions" />}
-                {activeView === 'clients' && <PlaceholderView title="Client Management" />}
+                {activeView === 'payments' && <PaymentsView />}
+                {activeView === 'clients' && <ClientsView />}
                 {activeView === 'messages' && <MessagesView />}
                 {activeView === 'contact' && <ContactView />}
                 {activeView === 'reports' && <ReportsView />}

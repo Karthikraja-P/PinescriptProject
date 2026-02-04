@@ -77,23 +77,10 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
     };
 
     const handlePaymentSuccess = (details: any) => {
-        alert(`Transaction completed by ${details.payer.name.given_name}! (Mock Success)`);
+        alert(`Payment successful! Order ID: ${details.id}. Your project status has been updated.`);
 
-        // Update project status if this was a quote payment
-        if (selectedPayment) {
-            const updatedProjects = myProjects.map(p =>
-                p.id === selectedPayment.id ? { ...p, status: 'In Progress' } : p
-            );
-            setMyProjects(updatedProjects);
-
-            // Sync LocalStorage
-            const localRequests = JSON.parse(localStorage.getItem('mock_requests') || '[]');
-            const updatedLocal = localRequests.map((r: any) =>
-                r.id === selectedPayment.id ? { ...r, status: 'In Progress' } : r
-            );
-            localStorage.setItem('mock_requests', JSON.stringify(updatedLocal));
-        }
-
+        // Refresh server data
+        router.refresh();
         setSelectedPayment(null);
     };
 
@@ -128,18 +115,12 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
             return;
         }
 
-        project.files.forEach((fileName: string) => {
-            // Simulate file content since we don't have actual storage connected
-            const content = `Placeholder content for ${fileName}\n\nDelivery Message:\n${project.deliveryMessage}`;
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName; // 'strategy.pine'
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+        project.files.forEach((file: any) => {
+            const link = document.createElement('a');
+            // Assuming .pine files are text, using proper mime type or generic data URL
+            link.href = `data:application/octet-stream;base64,${file.data}`;
+            link.download = file.name;
+            link.click();
         });
     };
 
@@ -555,6 +536,37 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                             {project.description || 'No description provided.'}
                         </div>
                     </div>
+                    {project.attachments && project.attachments.length > 0 && (
+                        <div style={{ marginBottom: '24px' }}>
+                            <div className={styles.label}>Attachments</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {project.attachments.map((file: any, i: number) => (
+                                    <div
+                                        key={i}
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = `data:${file.type};base64,${file.data}`;
+                                            link.download = file.name;
+                                            link.click();
+                                        }}
+                                        style={{
+                                            background: '#f1f5f9',
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8rem',
+                                            border: '1px solid #e2e8f0',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        📎 {file.name}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <div style={{ display: 'flex', gap: '12px' }}>
                         {project.status === 'Quote Sent' && (
                             <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => { setQuoteToReview(project); onClose(); }}>

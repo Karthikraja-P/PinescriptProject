@@ -16,26 +16,44 @@ export async function submitProjectRequest(prevState: any, formData: FormData) {
     const type = formData.get("type") as string;
     const budget = formData.get("budget") as string;
     const description = formData.get("description") as string;
+    const title = (formData.get("title") as string) || `New ${type.charAt(0).toUpperCase() + type.slice(1)} Request`;
 
     if (!description) {
         return { error: "Description is required." };
     }
 
+    // Handle File Attachments
+    const files = formData.getAll("attachments") as File[];
+    const attachments = await Promise.all(
+        files
+            .filter(file => file.size > 0)
+            .map(async (file) => {
+                const arrayBuffer = await file.arrayBuffer();
+                const base64 = Buffer.from(arrayBuffer).toString('base64');
+                return {
+                    name: file.name,
+                    type: file.type,
+                    data: base64
+                };
+            })
+    );
+
     try {
         await createProject({
             userId: session.user.id || `USER#${session.user.email}`,
             userEmail: session.user.email,
-            title: "New Project Request",
+            title,
             type,
             budget,
             description,
-            status: "SUBMITTED"
+            status: "New",
+            attachments: attachments.length > 0 ? attachments : undefined
         });
 
         // Notify Admin
         await sendNewProjectAdminNotification({
             userEmail: session.user.email,
-            title: "New Project Request", // Or dynamic if we had a title field
+            title,
             budget,
             description
         });
