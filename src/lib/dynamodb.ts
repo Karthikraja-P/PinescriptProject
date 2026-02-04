@@ -1,8 +1,11 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import dotenv from 'dotenv';
+import { mockDB } from './mock-db';
 
 dotenv.config();
+
+const useMock = process.env.DYNAMODB_ENDPOINT === 'mock';
 
 const config = {
     region: process.env.AWS_REGION || "us-east-1",
@@ -10,14 +13,15 @@ const config = {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || "dummy",
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "dummy",
     },
-    ...(process.env.DYNAMODB_ENDPOINT
+    ...(process.env.DYNAMODB_ENDPOINT && process.env.DYNAMODB_ENDPOINT !== 'mock'
         ? { endpoint: process.env.DYNAMODB_ENDPOINT }
         : {}),
 };
 
 const client = new DynamoDBClient(config);
 
-export const db = DynamoDBDocumentClient.from(client, {
+// Use mock DB for local development, real DB for production
+export const db = useMock ? mockDB as any : DynamoDBDocumentClient.from(client, {
     marshallOptions: {
         removeUndefinedValues: true,
     },

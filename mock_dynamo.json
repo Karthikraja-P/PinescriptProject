@@ -1,0 +1,22 @@
+[
+  [
+    "USER#admin@pinescript.com#PROFILE",
+    {
+      "PK": "USER#admin@pinescript.com",
+      "SK": "PROFILE",
+      "name": "admin",
+      "email": "admin@pinescript.com",
+      "passwordHash": "$2b$10$IFuwkYt.g0mwBeFdgJBv2OdGM5DkRvXf60Hw/6biOXNOQuEJIyYt6",
+      "role": "CLIENT",
+      "createdAt": "2026-02-04T09:27:03.588Z"
+    }
+  ],
+  [
+    "USER#admin@pinescript.com#CHATMETA#SUPPORT_admin@pinescript.com",
+    {
+      "PK": "USER#admin@pinescript.com",
+      "SK": "CHATMETA#SUPPORT_admin@pinescript.com",
+      "lastReadAt": "2026-02-04T09:27:31.671Z"
+    }
+  ]
+]
