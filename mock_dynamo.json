@@ -7,7 +7,7 @@
       "name": "admin",
       "email": "admin@pinescript.com",
       "passwordHash": "$2b$10$IFuwkYt.g0mwBeFdgJBv2OdGM5DkRvXf60Hw/6biOXNOQuEJIyYt6",
-      "role": "CLIENT",
+      "role": "ADMIN",
       "createdAt": "2026-02-04T09:27:03.588Z"
     }
   ],
@@ -16,7 +16,7 @@
     {
       "PK": "USER#admin@pinescript.com",
       "SK": "CHATMETA#SUPPORT_admin@pinescript.com",
-      "lastReadAt": "2026-02-04T09:27:31.671Z"
+      "lastReadAt": "2026-02-05T08:13:43.957Z"
     }
   ],
   [
@@ -45,9 +45,9 @@
       "type": "strategy",
       "budget": "$150-300",
       "description": "A test strategy seeded for verification.",
-      "status": "In Progress",
+      "status": "Completed",
       "createdAt": "2026-02-05T01:25:10.815Z",
-      "updatedAt": "2026-02-05T01:25:10.815Z",
+      "updatedAt": "2026-02-05T09:21:25.037Z",
       "s": "In Progress",
       "q": {
         "amount": "200.00",
@@ -60,7 +60,9 @@
         "currency": "USD",
         "deadline": "2024-12-31",
         "createdAt": "2026-02-05T01:26:35.587Z"
-      }
+      },
+      "files": [],
+      "deliveryMessage": "done"
     }
   ],
   [
@@ -117,6 +119,138 @@
       "amount": "200.00",
       "status": "COMPLETED",
       "createdAt": "2026-02-05T01:26:35.590Z"
+    }
+  ],
+  [
+    "USER#client@pinescript.com#PROFILE",
+    {
+      "PK": "USER#client@pinescript.com",
+      "SK": "PROFILE",
+      "name": "Client User",
+      "email": "client@pinescript.com",
+      "passwordHash": "$2b$10$X0s4mwAsfyJg.Ldm/R.Y1OXWdQoST3tvpE1GKOjCIAqjGw4Hwbk.6",
+      "role": "CLIENT",
+      "createdAt": "2026-02-05T06:33:53.259Z"
+    }
+  ],
+  [
+    "USER#client@pinescript.com#PROJECT#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+    {
+      "PK": "USER#client@pinescript.com",
+      "SK": "PROJECT#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-02-05T06:56:37.276Z",
+      "id": "dca85675-060e-4baf-845d-bfd8aa1fa25d",
+      "userId": "USER#client@pinescript.com",
+      "userEmail": "client@pinescript.com",
+      "title": "AAA",
+      "type": "strategy",
+      "budget": "50-150",
+      "description": "Complete the basic pinescript project.",
+      "status": "New",
+      "createdAt": "2026-02-05T06:56:37.276Z",
+      "updatedAt": "2026-02-05T07:08:05.250Z",
+      "lastMessageAt": "2026-02-05T07:08:05.250Z",
+      "lastMessageSender": "client@pinescript.com"
+    }
+  ],
+  [
+    "USER#client@pinescript.com#CHATMETA#SUPPORT_client@pinescript.com",
+    {
+      "PK": "USER#client@pinescript.com",
+      "SK": "CHATMETA#SUPPORT_client@pinescript.com",
+      "lastReadAt": "2026-02-05T07:58:31.634Z"
+    }
+  ],
+  [
+    "USER#client@pinescript.com#CHATMETA#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+    {
+      "PK": "USER#client@pinescript.com",
+      "SK": "CHATMETA#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+      "lastReadAt": "2026-02-05T07:25:46.829Z"
+    }
+  ],
+  [
+    "PROJECT#dca85675-060e-4baf-845d-bfd8aa1fa25d#MSG#2026-02-05T07:08:05.250Z",
+    {
+      "PK": "PROJECT#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+      "SK": "MSG#2026-02-05T07:08:05.250Z",
+      "sender": "client@pinescript.com",
+      "senderRole": "CLIENT",
+      "content": "HI.. did u get the request?",
+      "attachments": [],
+      "id": "706bbb85-8cf5-42b8-bd15-45a89210bdcb",
+      "createdAt": "2026-02-05T07:08:05.250Z",
+      "status": "read"
+    }
+  ],
+  [
+    "USER#admin@pinescript.com#CHATMETA#SUPPORT_client@pinescript.com",
+    {
+      "PK": "USER#admin@pinescript.com",
+      "SK": "CHATMETA#SUPPORT_client@pinescript.com",
+      "lastReadAt": "2026-02-05T08:13:47.593Z"
+    }
+  ],
+  [
+    "USER#admin@pinescript.com#CHATMETA#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+    {
+      "PK": "USER#admin@pinescript.com",
+      "SK": "CHATMETA#dca85675-060e-4baf-845d-bfd8aa1fa25d",
+      "lastReadAt": "2026-02-05T08:14:09.195Z"
+    }
+  ],
+  [
+    "USER#admin@pinescript.com#PROJECT#728b762c-2927-4965-9743-2afa238722c5",
+    {
+      "PK": "USER#admin@pinescript.com",
+      "SK": "PROJECT#728b762c-2927-4965-9743-2afa238722c5",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-02-05T08:25:59.949Z",
+      "id": "728b762c-2927-4965-9743-2afa238722c5",
+      "userId": "USER#admin@pinescript.com",
+      "userEmail": "admin@pinescript.com",
+      "title": "BBB",
+      "type": "strategy",
+      "budget": "50-150",
+      "description": "Start the new request.",
+      "status": "Declined",
+      "createdAt": "2026-02-05T08:25:59.949Z",
+      "updatedAt": "2026-02-05T09:16:43.436Z"
+    }
+  ],
+  [
+    "USER#client@pinescript.com#PROJECT#6cb7ae5c-8047-415a-98f9-6f32a824a4ac",
+    {
+      "PK": "USER#client@pinescript.com",
+      "SK": "PROJECT#6cb7ae5c-8047-415a-98f9-6f32a824a4ac",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-02-05T08:36:13.954Z",
+      "id": "6cb7ae5c-8047-415a-98f9-6f32a824a4ac",
+      "userId": "USER#client@pinescript.com",
+      "userEmail": "client@pinescript.com",
+      "title": "BBB",
+      "type": "strategy",
+      "budget": "50-150",
+      "description": "Start the project.",
+      "status": "Quote Sent",
+      "createdAt": "2026-02-05T08:36:13.954Z",
+      "updatedAt": "2026-02-05T08:55:12.355Z",
+      "quote": {
+        "amount": "100",
+        "currency": "USD",
+        "deadline": "2026-02-08",
+        "notes": "send the preview",
+        "createdAt": "2026-02-05T08:55:12.355Z"
+      }
+    }
+  ],
+  [
+    "USER#admin@pinescript.com#CHATMETA#81421ddf-45b0-41eb-8a6b-3aba935a3170",
+    {
+      "PK": "USER#admin@pinescript.com",
+      "SK": "CHATMETA#81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "lastReadAt": "2026-02-05T08:51:34.503Z"
     }
   ]
 ]

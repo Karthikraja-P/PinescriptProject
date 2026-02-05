@@ -91,7 +91,7 @@ export async function deliverProjectAction(data: {
                 "#status": "status"
             },
             ExpressionAttributeValues: {
-                ":s": "Completed",
+                ":s": "Delivered",
                 ":f": data.files, // In a real app, these would be S3 URLs
                 ":m": data.message,
                 ":t": new Date().toISOString()

@@ -199,6 +199,20 @@ export async function getProjectByIdAdmin(projectId: string) {
     return result.Items?.[0] || null;
 }
 
+export async function getAllSupportChats() {
+    const result = await db.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: "GSI1",
+        KeyConditionExpression: "GSI1PK = :pk",
+        ExpressionAttributeValues: {
+            ":pk": "ADMIN#ALL_SUPPORT"
+        },
+        ScanIndexForward: false // Newest first
+    }));
+
+    return result.Items || [];
+}
+
 /**
  * Record a payment and update project status
  */
@@ -298,12 +312,18 @@ export async function saveMessage(projectId: string, message: MessageData, paren
     try {
         if (projectId.startsWith('SUPPORT_')) {
             // Support chat - update the support record
+            // Support chat - update the support record
             const clientEmail = projectId.replace('SUPPORT_', '');
             await db.send(new UpdateCommand({
                 TableName: TABLE_NAME,
                 Key: { PK: `USER#${clientEmail}`, SK: `SUPPORT#${clientEmail}` },
-                UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t, lastMessageSender = :s",
-                ExpressionAttributeValues: { ":t": timestamp, ":s": message.sender }
+                UpdateExpression: "SET updatedAt = :t, lastMessageAt = :t, lastMessageSender = :s, GSI1PK = :gpk, GSI1SK = :gsk",
+                ExpressionAttributeValues: {
+                    ":t": timestamp,
+                    ":s": message.sender,
+                    ":gpk": "ADMIN#ALL_SUPPORT",
+                    ":gsk": `TIMESTAMP#${timestamp}`
+                }
             }));
         } else if (parentUserEmail) {
             // Project chat - update the user's project record

@@ -56,25 +56,57 @@ export const mockDB = {
         // Handle QueryCommand
         if (commandName === 'QueryCommand') {
             const items: any[] = [];
+            const indexName = command.input.IndexName;
 
+            // Map the :pk/:sk values from ExpressionAttributeValues
             const pkValue = command.input.ExpressionAttributeValues?.[':pk'];
             const skValue = command.input.ExpressionAttributeValues?.[':sk'];
 
-            console.log(`[MockDB] Query PK=${pkValue}, SK=${skValue}`);
+            console.log(`[MockDB] Query Index=${indexName}, PK=${pkValue}, SK=${skValue}`);
 
             inMemoryDB.forEach((value, key) => {
-                if (pkValue && !key.startsWith(pkValue)) {
-                    return;
-                }
+                let match = true;
 
-                if (skValue) {
-                    if (!key.includes(skValue)) return;
+                if (indexName) {
+                    // IF GSI Query, check GSI attributes
+                    // Assumes standard naming "GSI1" -> "GSI1PK", "GSI1SK"
+                    const pkAttr = `${indexName}PK`;
+                    const skAttr = `${indexName}SK`;
+
+                    if (pkValue && value[pkAttr] !== pkValue) {
+                        return;
+                    }
+                    if (skValue) {
+                        // Assuming string prefix match for sort key if not exact
+                        if (!value[skAttr] || !value[skAttr].startsWith(skValue)) {
+                            return;
+                        }
+                    }
+                } else {
+                    // Standard Table Query (PK/SK)
+                    // PK is part of the key "PK#SK"
+                    if (pkValue && !key.startsWith(`${pkValue}#`)) {
+                        return;
+                    }
+                    if (skValue) {
+                        // SK check - a bit hacky on the composite key string but works for simple "begins_with"
+                        if (!key.includes(`#${skValue}`)) return;
+                    }
                 }
 
                 items.push(value);
             });
-            console.log(`[MockDB] Query found ${items.length} items`);
 
+            // Basic sort if needed (descending for timestamps usually)
+            if (command.input.ScanIndexForward === false) {
+                items.sort((a, b) => {
+                    const skA = indexName ? a[`${indexName}SK`] : a.SK;
+                    const skB = indexName ? b[`${indexName}SK`] : b.SK;
+                    return skB.localeCompare(skA);
+                });
+            }
+
+            console.log(`[MockDB] Query found ${items.length} items`);
             return { Items: items };
         }
 

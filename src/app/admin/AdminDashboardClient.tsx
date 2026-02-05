@@ -28,7 +28,7 @@ interface Stats {
 export default function AdminDashboard({ initialEnquiries, initialSupportChats, initialContactMessages, initialChatMetas, initialUsers = [], initialPayments = [], currentUserEmail }: AdminDashboardClientProps) {
     const [users, setUsers] = useState(initialUsers);
     const [payments, setPayments] = useState(initialPayments);
-    const [activeView, setActiveView] = useState('dashboard');
+    const [activeView, setActiveView] = useState('dashboard'); // dashboard | enquiries | projects | support | settings
     const [notifications, setNotifications] = useState(0);
     const [enquiries, setEnquiries] = useState(initialEnquiries);
     const [selectedEnquiry, setSelectedEnquiry] = useState<any>(null);
@@ -37,6 +37,19 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
     const router = useRouter();
 
     const [stats, setStats] = useState<Stats>({ revenue: 0, pending: 0, active: 0, completed: 0 });
+    const [supportChats, setSupportChats] = useState<any[]>(initialSupportChats || []);
+    const [activeSupportChat, setActiveSupportChat] = useState<any>(null);
+
+    useEffect(() => {
+        const loadData = async () => {
+            const { fetchSupportChatsAction } = await import("@/app/actions");
+            const supRes = await fetchSupportChatsAction();
+            if (supRes.success) {
+                setSupportChats(supRes.chats || []);
+            }
+        };
+        loadData();
+    }, []);
 
     useEffect(() => {
         // Calculate Stats from Enquiries
@@ -191,6 +204,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                     { id: 'enquiries', label: 'Enquiries', icon: '📩', badge: initialEnquiries.filter(e => e.status === 'New').length },
                     { id: 'contact', label: 'Contacts', icon: '📇', badge: initialContactMessages.length },
                     { id: 'projects', label: 'Projects', icon: '🚀' },
+                    { id: 'support', label: 'Support', icon: '💬' },
                     { id: 'payments', label: 'Payments', icon: '💰' },
                     { id: 'clients', label: 'Clients', icon: '👥' },
                     {
@@ -268,11 +282,11 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                     <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setActiveView('enquiries')}>View All</button>
                 </div>
                 <table className={styles.table}>
-                    <thead><tr><th>Client</th><th>Type</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Client</th><th>Title</th><th>Type</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
                     <tbody>
                         {enquiries.slice(0, 5).map(e => (
                             <tr key={e.id}>
-                                <td>{e.client}</td><td>{e.type}</td><td>{e.date}</td>
+                                <td>{e.client}</td><td style={{ fontWeight: 500 }}>{e.title}</td><td>{e.type}</td><td>{e.date}</td>
                                 <td><span className={`${styles.badge} ${e.status === 'New' ? styles.statusNew : styles.statusQuote}`}>{e.status}</span></td>
                                 <td>
                                     <button
@@ -298,14 +312,14 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
             <div className={styles.header}><h1 className={styles.title}>Enquiry Management</h1></div>
             <div className={styles.card}>
                 <table className={styles.table}>
-                    <thead><tr><th>ID</th><th>Client</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Client</th><th>Title</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                         {enquiries.length === 0 ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>No enquiries found.</td></tr>
+                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>No enquiries found.</td></tr>
                         ) : (
                             enquiries.map(e => (
                                 <tr key={e.id}>
-                                    <td>{e.id}</td><td>{e.client}</td><td>{e.type}</td><td>{e.date}</td>
+                                    <td>{e.id}</td><td>{e.client}</td><td style={{ fontWeight: 500 }}>{e.title}</td><td>{e.type}</td><td>{e.date}</td>
                                     <td><span className={styles.badge}>{e.status}</span></td>
                                     <td>
                                         {e.status === 'New' ? (
@@ -326,12 +340,14 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                                         >
                                             Open
                                         </button>
-                                        <button
-                                            className={`${styles.btn} ${styles.btnOutline}`}
-                                            onClick={() => handleRejectEnquiry(e)}
-                                        >
-                                            Reject
-                                        </button>
+                                        {e.status !== 'Declined' && (
+                                            <button
+                                                className={`${styles.btn} ${styles.btnOutline}`}
+                                                onClick={() => handleRejectEnquiry(e)}
+                                            >
+                                                Reject
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))
@@ -630,6 +646,70 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
         </>
     );
 
+    const SupportView = () => (
+        <>
+            <div className={styles.header}>
+                <h1 className={styles.title}>Support Messages</h1>
+            </div>
+            <div className={styles.chatLayout} style={{ display: 'flex', height: '600px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                {/* ID List */}
+                <div style={{ width: '300px', borderRight: '1px solid #e2e8f0', overflowY: 'auto' }}>
+                    <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontWeight: 600, background: '#f8fafc' }}>
+                        Active Chats ({supportChats.length})
+                    </div>
+                    {supportChats.length === 0 ? (
+                        <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>No support chats yet.</div>
+                    ) : (
+                        supportChats.map(chat => {
+                            const userEmail = chat.SK.replace('SUPPORT#', '');
+                            const isUnread = false; // Implement unread logic based on lastReadAt vs lastMessageAt if needed
+                            return (
+                                <div
+                                    key={chat.SK}
+                                    onClick={() => setActiveSupportChat(chat)}
+                                    style={{
+                                        padding: '16px',
+                                        borderBottom: '1px solid #f1f5f9',
+                                        cursor: 'pointer',
+                                        background: activeSupportChat?.SK === chat.SK ? '#f0f9ff' : 'white',
+                                        borderLeft: activeSupportChat?.SK === chat.SK ? '3px solid #3b82f6' : '3px solid transparent'
+                                    }}
+                                >
+                                    <div style={{ fontWeight: 500, fontSize: '0.9rem', marginBottom: '4px' }}>{userEmail}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                        {chat.lastMessageAt ? new Date(chat.lastMessageAt).toLocaleDateString() : 'No messages'}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+                {/* Chat Area */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    {activeSupportChat ? (
+                        <>
+                            <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontWeight: 600 }}>Chat with {activeSupportChat.SK.replace('SUPPORT#', '')}</span>
+                            </div>
+                            <div style={{ flex: 1, overflow: 'hidden' }}>
+                                <ChatInterface
+                                    chatId={`SUPPORT_${activeSupportChat.SK.replace('SUPPORT#', '')}`}
+                                    chatTitle={`Support: ${activeSupportChat.SK.replace('SUPPORT#', '')}`}
+                                    currentUserEmail={currentUserEmail}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                            Select a conversation to reply.
+                        </div>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+
     // VIEW: Contact Form Messages
     const ContactView = () => (
         <>
@@ -730,7 +810,9 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                         <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => { setActiveView('messages'); setSelectedEnquiry(null); onClose(); }}>
                             Open Chat
                         </button>
-                        <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => handleRejectEnquiry(enquiry)}>Reject</button>
+                        {enquiry.status !== 'Declined' && (
+                            <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => handleRejectEnquiry(enquiry)}>Reject</button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -835,6 +917,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                 {activeView === 'contact' && <ContactView />}
                 {activeView === 'reports' && <ReportsView />}
                 {activeView === 'settings' && <SettingsView />}
+                {activeView === 'support' && <SupportView />}
 
                 {viewingEnquiry && (
                     <EnquiryDetailModal
@@ -846,6 +929,7 @@ export default function AdminDashboard({ initialEnquiries, initialSupportChats, 
                 {selectedEnquiry && (
                     <QuoteModal
                         requestId={selectedEnquiry.id}
+                        projectTitle={selectedEnquiry.title}
                         clientName={selectedEnquiry.client}
                         onClose={() => setSelectedEnquiry(null)}
                         onSendQuote={handleSendQuote}

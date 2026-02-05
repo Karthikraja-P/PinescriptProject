@@ -32,6 +32,7 @@ export default async function AdminPage() {
         clientName: p.userEmail?.split('@')[0] || 'Client',
         userId: p.PK, // store full PK
         userEmail: p.userEmail,
+        title: p.title,
         type: p.type,
         date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A',
         status: p.status,

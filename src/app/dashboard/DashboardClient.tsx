@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import PaymentModal from '@/components/PaymentModal';
 import ChatInterface from '@/components/ChatInterface';
 import QuoteReviewModal from '@/components/QuoteReviewModal';
+import DeliveryReviewModal from '@/components/DeliveryReviewModal';
 import styles from './page.module.css';
 
 interface DashboardClientProps {
@@ -19,6 +20,7 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
     const [activeView, setActiveView] = useState('dashboard');
     const [selectedPayment, setSelectedPayment] = useState<{ amount: string, id: string } | null>(null);
     const [quoteToReview, setQuoteToReview] = useState<any>(null);
+    const [projectToReview, setProjectToReview] = useState<any>(null);
     const [viewingProject, setViewingProject] = useState<any>(null);
 
     // Payments State
@@ -122,6 +124,43 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
             link.download = file.name;
             link.click();
         });
+    };
+
+    const handleAcceptDelivery = async () => {
+        if (!projectToReview) return;
+
+        const { acceptDeliveryAction } = await import('@/app/actions');
+        const res = await acceptDeliveryAction(projectToReview.id);
+
+        if (res.success) {
+            alert("Project accepted and completed!");
+            router.refresh();
+            setProjectToReview(null);
+        } else {
+            alert("Failed to accept delivery.");
+        }
+    };
+
+    const handleRequestRevision = async (reason: string) => {
+        if (!projectToReview) return;
+
+        const { requestRevisionAction } = await import('@/app/actions');
+        const res = await requestRevisionAction(projectToReview.id, reason);
+
+        if (res.success) {
+            alert("Revision requested.");
+            router.refresh();
+            setProjectToReview(null);
+        } else {
+            alert("Failed to request revision.");
+        }
+    };
+
+    const handleDownloadReview = (file: any) => {
+        const link = document.createElement('a');
+        link.href = `data:application/octet-stream;base64,${file.data}`;
+        link.download = file.name;
+        link.click();
     };
 
     // --- SUB-COMPONENTS ---
@@ -277,7 +316,15 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                                             style={{ padding: '4px 8px', fontSize: '0.8rem', background: '#eab308', borderColor: '#eab308' }}
                                             onClick={() => setQuoteToReview(p)}
                                         >
-                                            Review
+                                            Review Quote
+                                        </button>
+                                    ) : p.status === 'Delivered' ? (
+                                        <button
+                                            className={`${styles.btn} ${styles.btnPrimary}`}
+                                            style={{ padding: '4px 8px', fontSize: '0.8rem', background: '#3b82f6', borderColor: '#3b82f6' }}
+                                            onClick={() => setProjectToReview(p)}
+                                        >
+                                            Review Delivery
                                         </button>
                                     ) : p.status === 'Completed' ? (
                                         <button
@@ -348,7 +395,7 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
 
         // Helper to check if a chat has unread messages from developer
         const hasUnreadFromDeveloper = (chatId: string) => {
-            if (chatId === 'general') return false; // Support chat handling could be added later
+            if (chatId.startsWith('SUPPORT_')) return false; // Support chat handling could be added later
             const project = (initialProjects || []).find((p: any) => p.id === chatId);
             if (!project || !project.lastMessageAt) return false;
             // Only show unread if the last message was from someone else (developer)
@@ -358,8 +405,9 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
         };
 
         // Combine "General Support" with user projects for the chat list
+        const supportId = `SUPPORT_${userProfile.email}`;
         const chatList = [
-            { id: 'general', title: 'General Support', status: 'Online', hasUnread: false },
+            { id: supportId, title: 'General Support', status: 'Online', hasUnread: false },
             ...(myProjects || []).map(p => ({
                 id: p.id,
                 title: p.title || 'Untitled Project',
@@ -407,7 +455,7 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                                             }}></span>
                                         )}
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.id === 'general' ? 'Support' : chat.status}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{chat.id.startsWith('SUPPORT_') ? 'Support' : chat.status}</div>
                                 </div>
                             ))}
                         </div>
@@ -616,6 +664,17 @@ export default function ClientDashboard({ user, initialProjects, initialPayments
                         invoiceId={selectedPayment.id}
                         onClose={() => setSelectedPayment(null)}
                         onSuccess={handlePaymentSuccess}
+                    />
+                )}
+
+                {/* Delivery Review Modal */}
+                {projectToReview && (
+                    <DeliveryReviewModal
+                        project={projectToReview}
+                        onClose={() => setProjectToReview(null)}
+                        onAccept={handleAcceptDelivery}
+                        onRequestRevision={handleRequestRevision}
+                        onDownload={handleDownloadReview}
                     />
                 )}
             </div>

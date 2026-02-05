@@ -11,6 +11,10 @@ export default async function DashboardPage() {
         redirect("/auth?mode=login");
     }
 
+    if (session.user.role === 'ADMIN') {
+        redirect("/admin");
+    }
+
     const projects = await getUserProjects(session.user.email);
     const { getUserPayments, getUserByEmail, getChatMetas } = await import("@/lib/db-actions");
     const payments = await getUserPayments(session.user.email);

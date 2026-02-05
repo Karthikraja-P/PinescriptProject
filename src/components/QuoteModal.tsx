@@ -4,12 +4,13 @@ import { useState } from 'react';
 
 interface QuoteModalProps {
     requestId: string;
+    projectTitle?: string;
     clientName: string;
     onClose: () => void;
     onSendQuote: (data: { price: string, deadline: string, notes: string }) => void;
 }
 
-export default function QuoteModal({ requestId, clientName, onClose, onSendQuote }: QuoteModalProps) {
+export default function QuoteModal({ requestId, projectTitle, clientName, onClose, onSendQuote }: QuoteModalProps) {
     const [formData, setFormData] = useState({
         price: '',
         deadline: '',
@@ -31,9 +32,12 @@ export default function QuoteModal({ requestId, clientName, onClose, onSendQuote
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
             }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '4px' }}>Send Quote</h2>
-                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '20px' }}>
-                    For Request <span style={{ fontWeight: 500, color: '#1e293b' }}>{requestId}</span> by {clientName}
+                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '4px' }}>
+                    Project: <span style={{ fontWeight: 600, color: '#1e293b' }}>{projectTitle || 'Untitled'}</span>
                 </p>
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '20px' }}>
+                    ID: {requestId} • Client: {clientName}
+                </div>
 
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '16px' }}>

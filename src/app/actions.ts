@@ -5,6 +5,7 @@ import { hash } from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { sendWelcomeEmail, sendNewProjectAdminNotification } from "@/lib/email";
+import { revalidatePath } from "next/cache";
 
 export async function submitProjectRequest(prevState: any, formData: FormData) {
     const session: any = await getServerSession(authOptions);
@@ -57,6 +58,9 @@ export async function submitProjectRequest(prevState: any, formData: FormData) {
             budget,
             description
         });
+
+        revalidatePath('/dashboard');
+        revalidatePath('/admin');
 
         return { success: true };
     } catch (e) {
@@ -151,5 +155,80 @@ export async function submitContactForm(formData: FormData) {
     } catch (e) {
         console.error("Contact form error:", e);
         return { error: "Failed to send message. Please try again." };
+    }
+}
+
+export async function fetchSupportChatsAction() {
+    const session: any = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const { getAllSupportChats } = await import("@/lib/db-actions");
+        const chats = await getAllSupportChats();
+        return { success: true, chats };
+    } catch (e) {
+        console.error("Fetch support chats error:", e);
+        return { error: "Failed to fetch chats" };
+    }
+}
+
+export async function acceptDeliveryAction(projectId: string) {
+    const session: any = await getServerSession(authOptions);
+    if (!session || !session.user) return { error: "Unauthorized" };
+
+    const { db, TABLE_NAME } = await import("@/lib/dynamodb");
+    const { UpdateCommand } = await import("@aws-sdk/lib-dynamodb");
+
+    const pk = `USER#${session.user.email}`;
+    const sk = `PROJECT#${projectId}`;
+
+    try {
+        await db.send(new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: { PK: pk, SK: sk },
+            UpdateExpression: "set #status = :s, updatedAt = :t",
+            ExpressionAttributeNames: { "#status": "status" },
+            ExpressionAttributeValues: {
+                ":s": "Completed",
+                ":t": new Date().toISOString()
+            }
+        }));
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e) {
+        console.error("Accept delivery error:", e);
+        return { error: "Failed to accept delivery" };
+    }
+}
+
+export async function requestRevisionAction(projectId: string, reason: string) {
+    const session: any = await getServerSession(authOptions);
+    if (!session || !session.user) return { error: "Unauthorized" };
+
+    const { db, TABLE_NAME } = await import("@/lib/dynamodb");
+    const { UpdateCommand } = await import("@aws-sdk/lib-dynamodb");
+
+    const pk = `USER#${session.user.email}`;
+    const sk = `PROJECT#${projectId}`;
+
+    try {
+        await db.send(new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: { PK: pk, SK: sk },
+            UpdateExpression: "set #status = :s, revisionReason = :r, updatedAt = :t",
+            ExpressionAttributeNames: { "#status": "status" },
+            ExpressionAttributeValues: {
+                ":s": "Revision Requested",
+                ":r": reason,
+                ":t": new Date().toISOString()
+            }
+        }));
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (e) {
+        console.error("Request revision error:", e);
+        return { error: "Failed to request revision" };
     }
 }

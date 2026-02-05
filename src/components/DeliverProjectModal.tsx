@@ -131,7 +131,7 @@ export default function DeliverProjectModal({ project, onClose, onDeliver }: Del
                                 color: 'white', fontWeight: 500, cursor: isProcessing ? 'not-allowed' : 'pointer' // Green for delivery
                             }}
                         >
-                            {isProcessing ? 'Processing...' : 'Deliver & Complete'}
+                            {isProcessing ? 'Processing...' : 'Deliver Project'}
                         </button>
                     </div>
                 </form>

@@ -1,37 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PineScript Elite Platform
 
-## Getting Started
+A custom web application for managing Pine Script development requests, quotes, payments, and secure delivery. Connecting traders with expert Pine Script developers.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### For Clients
+- **Project Requests**: Easy-to-use wizard for submitting Strategy or Indicator requests with file attachments.
+- **Dashboard**: Track project status (New, Quoted, In Progress, Completed).
+- **Messaging**: Built-in chat to communicate with developers.
+- **Payments**: Integrated PayPal payments to accept quotes securely.
+- **Secure Delivery**: Direct download of completed source code from the dashboard.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### For Admins
+- **Enquiry Management**: Review incoming requests and send custom quotes (Price, Deadline, Notes).
+- **Project Tracking**: Monitor all active projects and payment statuses.
+- **Delivery System**: Securely upload completed files to finalize projects.
+- **RBAC Security**: Role-Based Access Control ensures only admins can perform sensitive actions.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠 Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router, Server Actions)
+- **Language**: TypeScript
+- **Database**: AWS DynamoDB (Single Table Design)
+- **Authentication**: NextAuth.js (Credentials Provider)
+- **Payments**: PayPal JavaScript SDK via `@paypal/react-paypal-js`
+- **Email**: AWS SES (via `@aws-sdk/client-ses`)
 
-## Learn More
+## 🏁 Getting Started
 
-To learn more about Next.js, take a look at the following resources:
+### Prerequisites
+- Node.js 18+
+- AWS Account (for DynamoDB/SES) or configured Local Mock
+- PayPal Developer Account (for Client ID)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Installation
+1.  Clone the repository.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Set up environment variables in `.env`:
+    ```env
+    # AWS (or Mock)
+    AWS_REGION=us-east-1
+    AWS_ACCESS_KEY_ID=dummy
+    AWS_SECRET_ACCESS_KEY=dummy
+    DYNAMODB_ENDPOINT=mock
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    # PayPal
+    NEXT_PUBLIC_PAYPAL_CLIENT_ID=test
 
-## Deploy on Vercel
+    # Auth
+    NEXTAUTH_SECRET=your-secret
+    NEXTAUTH_URL=http://localhost:3000
+    ```
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Testing the Application
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-name test
+### 1. Register a Client
+- Navigate to `http://localhost:3000/auth` -> **Register**
+- create a new account (e.g., `client@test.com`)
+- **Submit a Request**: Go to `/start` and submit a new project.
+
+### 2. Admin Workflow
+- **Create Admin**: Run the seeed script to create an admin account:
+    ```bash
+    npx tsx scripts/seed-data.ts
+    ```
+    *(Creates `admin@test.com` / `password`)*
+- **Login as Admin**: Open a private window or logout user.
+- **Send Quote**: Go to **Enquiries**, select the request, and click **Send Quote**.
+
+### 3. Payment & Delivery
+- **Accept Quote**: Log back in as Client -> Dashboard -> Click **Review** on the project -> **Pay** (Mock Mode will simulate success).
+- **Deliver**: Log in as Admin -> **Active Projects** -> **Deliver**. Upload a `.pine` or `.txt` file.
+- **Download**: Log in as Client -> Dashboard -> Click **Download**.
+
+## 🛡 Security
+- **RBAC**: Admin actions are strictly protected.
+- **Mock Mode**: Payment and Email services default to "Mock" mode if invalid credentials are detected, preventing accidental charges or spam.
