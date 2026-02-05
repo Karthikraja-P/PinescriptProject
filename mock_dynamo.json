@@ -18,5 +18,105 @@
       "SK": "CHATMETA#SUPPORT_admin@pinescript.com",
       "lastReadAt": "2026-02-04T09:27:31.671Z"
     }
+  ],
+  [
+    "USER#client@test.com#PROFILE",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PROFILE",
+      "name": "Client User",
+      "email": "client@test.com",
+      "passwordHash": "$2b$10$jLXVjKISI2u2wl70fkIvnOdmxzHtbwo3ZTaHd36c6vasDC7uhMZPS",
+      "role": "CLIENT",
+      "createdAt": "2026-02-05T01:25:10.808Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PROJECT#81421ddf-45b0-41eb-8a6b-3aba935a3170",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PROJECT#81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-02-05T01:25:10.815Z",
+      "id": "81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "userId": "USER#client@test.com",
+      "userEmail": "client@test.com",
+      "title": "Test Strategy",
+      "type": "strategy",
+      "budget": "$150-300",
+      "description": "A test strategy seeded for verification.",
+      "status": "In Progress",
+      "createdAt": "2026-02-05T01:25:10.815Z",
+      "updatedAt": "2026-02-05T01:25:10.815Z",
+      "s": "In Progress",
+      "q": {
+        "amount": "200.00",
+        "currency": "USD",
+        "deadline": "2024-12-31",
+        "createdAt": "2026-02-05T01:26:00.414Z"
+      },
+      "quote": {
+        "amount": "200.00",
+        "currency": "USD",
+        "deadline": "2024-12-31",
+        "createdAt": "2026-02-05T01:26:35.587Z"
+      }
+    }
+  ],
+  [
+    "USER#admin@test.com#PROFILE",
+    {
+      "PK": "USER#admin@test.com",
+      "SK": "PROFILE",
+      "name": "Admin User",
+      "email": "admin@test.com",
+      "passwordHash": "$2b$10$jLXVjKISI2u2wl70fkIvnOdmxzHtbwo3ZTaHd36c6vasDC7uhMZPS",
+      "role": "ADMIN",
+      "createdAt": "2026-02-05T01:25:10.818Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PAYMENT#PAY-MOCK-1770254720221",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PAYMENT#PAY-MOCK-1770254720221",
+      "projectId": "81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "amount": "200.00",
+      "status": "COMPLETED",
+      "createdAt": "2026-02-05T01:25:20.221Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PAYMENT#PAY-MOCK-1770254743875",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PAYMENT#PAY-MOCK-1770254743875",
+      "projectId": "81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "amount": "200.00",
+      "status": "COMPLETED",
+      "createdAt": "2026-02-05T01:25:43.875Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PAYMENT#PAY-MOCK-1770254760419",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PAYMENT#PAY-MOCK-1770254760419",
+      "projectId": "81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "amount": "200.00",
+      "status": "COMPLETED",
+      "createdAt": "2026-02-05T01:26:00.419Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PAYMENT#PAY-MOCK-1770254795590",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PAYMENT#PAY-MOCK-1770254795590",
+      "projectId": "81421ddf-45b0-41eb-8a6b-3aba935a3170",
+      "amount": "200.00",
+      "status": "COMPLETED",
+      "createdAt": "2026-02-05T01:26:35.590Z"
+    }
   ]
 ]

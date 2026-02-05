@@ -4,6 +4,7 @@ import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { db, TABLE_NAME } from "@/lib/dynamodb";
 import { getAllProjectsAdmin } from "@/lib/db-actions";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 // We need to fetch all projects but also maybe users to map names if not stored in project
 // For now, let's just get projects.
 
@@ -16,6 +17,11 @@ export async function submitQuote(quoteData: {
     deadline: string;
     notes: string;
 }) {
+    const session: any = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+        return { error: "Unauthorized: Admins only." };
+    }
+
     // 1. Construct Keys
     // Similar logic: Project PK is USER#<email>, SK is PROJECT#<id>
     const pk = quoteData.userId.startsWith('USER#') ? quoteData.userId : `USER#${quoteData.userEmail}`;
@@ -68,6 +74,11 @@ export async function deliverProjectAction(data: {
     files: { name: string; data: string }[];
     message: string;
 }) {
+    const session: any = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+        return { error: "Unauthorized: Admins only." };
+    }
+
     const pk = data.userId.startsWith('USER#') ? data.userId : `USER#${data.userEmail}`;
     const sk = `PROJECT#${data.projectId}`;
 
@@ -104,6 +115,11 @@ export async function rejectEnquiryAction(data: {
     userEmail: string;
     reason?: string;
 }) {
+    const session: any = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+        return { error: "Unauthorized: Admins only." };
+    }
+
     const pk = data.userId.startsWith('USER#') ? data.userId : `USER#${data.userEmail}`;
     const sk = `PROJECT#${data.projectId}`;
 

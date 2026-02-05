@@ -30,7 +30,21 @@ export default function PaymentModal({ amount, invoiceId, onClose, onSuccess }: 
                         Paying <strong>${numericAmount}</strong> for Invoice <strong>#{invoiceId}</strong>
                     </p>
 
-                    {/* Replace with env variable in production */}
+                    {/* Check if Client ID is missing or default */}
+                    {(!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID === 'test') && (
+                        <div style={{
+                            background: '#fffbeb',
+                            border: '1px solid #fcd34d',
+                            padding: '10px',
+                            borderRadius: '6px',
+                            marginBottom: '16px',
+                            color: '#92400e',
+                            fontSize: '0.85rem'
+                        }}>
+                            <strong>⚠️ Sandbox Mode:</strong> Using 'test' Client ID. Payments will be simulated.
+                        </div>
+                    )}
+
                     <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test" }}>
                         <PayPalButtons
                             style={{ layout: "vertical" }}

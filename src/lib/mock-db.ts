@@ -104,11 +104,37 @@ export const mockDB = {
             const key = `${command.input.Key.PK}#${command.input.Key.SK}`;
             const existing = inMemoryDB.get(key) || { ...command.input.Key };
 
-            const updates = command.input.ExpressionAttributeValues || {};
-            Object.keys(updates).forEach(placeholder => {
-                const attrName = placeholder.replace(':', '');
-                existing[attrName] = updates[placeholder];
-            });
+            const expr = command.input.UpdateExpression || "";
+            const names = command.input.ExpressionAttributeNames || {};
+            const values = command.input.ExpressionAttributeValues || {};
+
+            // Simple parser for "set a = :v, b = :w"
+            if (expr.toLowerCase().startsWith('set ')) {
+                const assignments = expr.substring(4).split(',');
+                assignments.forEach((assign: string) => {
+                    const [targetRaw, valueRaw] = assign.split('=').map((s: string) => s.trim());
+
+                    // Resolve target attribute name
+                    let targetKey = targetRaw;
+                    if (targetRaw.startsWith('#')) {
+                        targetKey = names[targetRaw] || targetRaw;
+                    }
+
+                    // Resolve value
+                    let finalValue = valueRaw;
+                    if (valueRaw.startsWith(':')) {
+                        finalValue = values[valueRaw];
+                    }
+
+                    existing[targetKey] = finalValue;
+                });
+            } else {
+                // Fallback for extremely simple updates without SET (unlikely but safe fallback)
+                Object.keys(values).forEach(placeholder => {
+                    const attrName = placeholder.replace(':', '');
+                    existing[attrName] = values[placeholder];
+                });
+            }
 
             inMemoryDB.set(key, existing);
             saveDB();
