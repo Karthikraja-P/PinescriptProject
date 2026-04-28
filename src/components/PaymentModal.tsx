@@ -41,7 +41,7 @@ export default function PaymentModal({ amount, invoiceId, onClose, onSuccess }: 
                             color: '#92400e',
                             fontSize: '0.85rem'
                         }}>
-                            <strong>⚠️ Sandbox Mode:</strong> Using 'test' Client ID. Payments will be simulated.
+                            <strong>⚠️ Sandbox Mode:</strong> Using &apos;test&apos; Client ID. Payments will be simulated.
                         </div>
                     )}
 

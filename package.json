@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "sst deploy --stage production",
+    "remove": "sst remove --stage production"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.974.0",
@@ -32,6 +34,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "prisma": "^5.22.0",
+    "sst": "^4.12.2",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }
