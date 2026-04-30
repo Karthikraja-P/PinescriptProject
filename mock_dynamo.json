@@ -26,9 +26,9 @@
       "SK": "PROFILE",
       "name": "Client User",
       "email": "client@test.com",
-      "passwordHash": "$2b$10$4C6vLaTt/vLCiNvA5c9J5uJpAShtt90470YmbfqSavNAYemIcuoC6",
+      "passwordHash": "$2b$10$NiHcmUwKYlqdK20PRjCTKO1oo5UGSp1M3gNFAgIe2e480c8VWlWYC",
       "role": "CLIENT",
-      "createdAt": "2026-04-29T11:09:32.878Z"
+      "createdAt": "2026-04-30T08:13:31.200Z"
     }
   ],
   [
@@ -72,9 +72,9 @@
       "SK": "PROFILE",
       "name": "Admin User",
       "email": "admin@test.com",
-      "passwordHash": "$2b$10$4C6vLaTt/vLCiNvA5c9J5uJpAShtt90470YmbfqSavNAYemIcuoC6",
+      "passwordHash": "$2b$10$NiHcmUwKYlqdK20PRjCTKO1oo5UGSp1M3gNFAgIe2e480c8VWlWYC",
       "role": "ADMIN",
-      "createdAt": "2026-04-29T11:09:33.009Z"
+      "createdAt": "2026-04-30T08:13:31.230Z"
     }
   ],
   [
@@ -270,6 +270,44 @@
       "status": "New",
       "createdAt": "2026-04-29T11:09:32.895Z",
       "updatedAt": "2026-04-29T11:09:32.895Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PROJECT#fce8d362-8f96-4f3e-adc6-3b0f6900fd6b",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PROJECT#fce8d362-8f96-4f3e-adc6-3b0f6900fd6b",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-04-30T08:12:40.960Z",
+      "id": "fce8d362-8f96-4f3e-adc6-3b0f6900fd6b",
+      "userId": "USER#client@test.com",
+      "userEmail": "client@test.com",
+      "title": "Test Strategy",
+      "type": "strategy",
+      "budget": "$150-300",
+      "description": "A test strategy seeded for verification.",
+      "status": "New",
+      "createdAt": "2026-04-30T08:12:40.960Z",
+      "updatedAt": "2026-04-30T08:12:40.960Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PROJECT#bf704700-ff10-48be-beaf-82e70e3d21bf",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PROJECT#bf704700-ff10-48be-beaf-82e70e3d21bf",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-04-30T08:13:31.217Z",
+      "id": "bf704700-ff10-48be-beaf-82e70e3d21bf",
+      "userId": "USER#client@test.com",
+      "userEmail": "client@test.com",
+      "title": "Test Strategy",
+      "type": "strategy",
+      "budget": "$150-300",
+      "description": "A test strategy seeded for verification.",
+      "status": "New",
+      "createdAt": "2026-04-30T08:13:31.217Z",
+      "updatedAt": "2026-04-30T08:13:31.217Z"
     }
   ]
 ]
