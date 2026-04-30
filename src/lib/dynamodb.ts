@@ -8,7 +8,7 @@ dotenv.config();
 const useMock = process.env.DYNAMODB_ENDPOINT === 'mock';
 
 const config = {
-    region: process.env.AWS_REGION || "us-east-1",
+    region: process.env.DYNAMODB_REGION || process.env.AWS_REGION || "ap-south-1",
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || "dummy",
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "dummy",

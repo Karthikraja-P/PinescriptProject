@@ -26,9 +26,9 @@
       "SK": "PROFILE",
       "name": "Client User",
       "email": "client@test.com",
-      "passwordHash": "$2b$10$jLXVjKISI2u2wl70fkIvnOdmxzHtbwo3ZTaHd36c6vasDC7uhMZPS",
+      "passwordHash": "$2b$10$4C6vLaTt/vLCiNvA5c9J5uJpAShtt90470YmbfqSavNAYemIcuoC6",
       "role": "CLIENT",
-      "createdAt": "2026-02-05T01:25:10.808Z"
+      "createdAt": "2026-04-29T11:09:32.878Z"
     }
   ],
   [
@@ -72,9 +72,9 @@
       "SK": "PROFILE",
       "name": "Admin User",
       "email": "admin@test.com",
-      "passwordHash": "$2b$10$jLXVjKISI2u2wl70fkIvnOdmxzHtbwo3ZTaHd36c6vasDC7uhMZPS",
+      "passwordHash": "$2b$10$4C6vLaTt/vLCiNvA5c9J5uJpAShtt90470YmbfqSavNAYemIcuoC6",
       "role": "ADMIN",
-      "createdAt": "2026-02-05T01:25:10.818Z"
+      "createdAt": "2026-04-29T11:09:33.009Z"
     }
   ],
   [
@@ -251,6 +251,25 @@
       "PK": "USER#admin@pinescript.com",
       "SK": "CHATMETA#81421ddf-45b0-41eb-8a6b-3aba935a3170",
       "lastReadAt": "2026-02-05T08:51:34.503Z"
+    }
+  ],
+  [
+    "USER#client@test.com#PROJECT#c5c94e80-2de3-4c4c-bfb6-26399fa979cd",
+    {
+      "PK": "USER#client@test.com",
+      "SK": "PROJECT#c5c94e80-2de3-4c4c-bfb6-26399fa979cd",
+      "GSI1PK": "ADMIN#ALL_PROJECTS",
+      "GSI1SK": "TIMESTAMP#2026-04-29T11:09:32.895Z",
+      "id": "c5c94e80-2de3-4c4c-bfb6-26399fa979cd",
+      "userId": "USER#client@test.com",
+      "userEmail": "client@test.com",
+      "title": "Test Strategy",
+      "type": "strategy",
+      "budget": "$150-300",
+      "description": "A test strategy seeded for verification.",
+      "status": "New",
+      "createdAt": "2026-04-29T11:09:32.895Z",
+      "updatedAt": "2026-04-29T11:09:32.895Z"
     }
   ]
 ]

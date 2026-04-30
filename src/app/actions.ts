@@ -1,7 +1,7 @@
 'use server'
 
 import { createProject, createUser, getUserByEmail, getUserProjects } from "@/lib/db-actions";
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { sendWelcomeEmail, sendNewProjectAdminNotification } from "@/lib/email";
@@ -86,7 +86,7 @@ export async function registerUser(prevState: any, formData: FormData) {
             return { error: "User already exists with this email." };
         }
 
-        const hashedPassword = await hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         await createUser({
             name,

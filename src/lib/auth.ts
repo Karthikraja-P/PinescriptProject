@@ -1,5 +1,5 @@
 import CredentialsProvider from "next-auth/providers/credentials";
-import { compare } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { getUserByEmail } from "@/lib/db-actions";
 import { NextAuthOptions } from "next-auth";
 
@@ -17,13 +17,16 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 // DynamoDB lookup
+                console.log(`[Auth] Attempting login for: ${credentials.email}`);
                 const user: any = await getUserByEmail(credentials.email);
+                console.log(`[Auth] User found: ${!!user}`);
 
                 if (!user) {
                     return null;
                 }
 
-                const isValid = await compare(credentials.password, user.passwordHash);
+                const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
+                console.log(`[Auth] Password valid: ${isValid}`);
                 if (!isValid) {
                     return null;
                 }

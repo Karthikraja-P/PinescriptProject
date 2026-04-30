@@ -42,16 +42,16 @@ A custom web application for managing Pine Script development requests, quotes, 
 3.  Set up environment variables in `.env`:
     ```env
     # AWS (or Mock)
-    AWS_REGION=us-east-1
-    AWS_ACCESS_KEY_ID=dummy
-    AWS_SECRET_ACCESS_KEY=dummy
+    AWS_REGION=ap-south-1
+    AWS_ACCESS_KEY_ID=...
+    AWS_SECRET_ACCESS_KEY=...
     DYNAMODB_ENDPOINT=mock
 
     # PayPal
     NEXT_PUBLIC_PAYPAL_CLIENT_ID=test
 
     # Auth
-    NEXTAUTH_SECRET=your-secret
+    NEXTAUTH_SECRET=local-dev-secret-key-for-testing-only-change-in-production
     NEXTAUTH_URL=http://localhost:3000
     ```
 4.  Run the development server:

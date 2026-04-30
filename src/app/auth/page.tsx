@@ -167,13 +167,27 @@ export default function LoginPage() {
                 {/* Credentials Hint */}
                 <div style={{ marginTop: '24px', padding: '16px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#64748b' }}>
                     <p style={{ fontWeight: 600, marginBottom: '8px', color: '#475569' }}>Test Credentials:</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span>Client:</span>
-                        <code style={{ fontFamily: 'monospace' }}>client@pinescript.com / client123</code>
+                    <div style={{ marginBottom: '12px' }}>
+                        <p style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px' }}>Seeded (Recommended):</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                            <span>Client:</span>
+                            <code style={{ fontFamily: 'monospace' }}>client@test.com / password</code>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Admin:</span>
+                            <code style={{ fontFamily: 'monospace' }}>admin@test.com / password</code>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Developer:</span>
-                        <code style={{ fontFamily: 'monospace' }}>admin@pinescript.com / admin123</code>
+                    <div>
+                        <p style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px' }}>Legacy / Production:</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                            <span>Client:</span>
+                            <code style={{ fontFamily: 'monospace' }}>client@pinescript.com / client</code>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Admin:</span>
+                            <code style={{ fontFamily: 'monospace' }}>admin@pinescript.com / admin</code>
+                        </div>
                     </div>
                 </div>
             </div>

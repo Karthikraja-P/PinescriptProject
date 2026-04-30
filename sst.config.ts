@@ -9,11 +9,15 @@ export default $config({
     };
   },
   async run() {
+    const dotenv = await import("dotenv");
+    dotenv.config();
+
     new sst.aws.Nextjs("MyWeb", {
       environment: {
         NEXTAUTH_URL: process.env.NEXTAUTH_URL || "",
         NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "",
-        TABLE_NAME: process.env.TABLE_NAME || ""
+        TABLE_NAME: process.env.TABLE_NAME || "",
+        DYNAMODB_REGION: process.env.DYNAMODB_REGION || process.env.AWS_REGION || "ap-south-1"
       }
     });
   },
